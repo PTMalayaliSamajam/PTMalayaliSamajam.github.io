@@ -899,9 +899,6 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   /* ── SAVE TO DRIVE ── */
   async function saveToDrive(data, refId, ts) {
     const el = document.getElementById('driveStatus');
-    const details = data.event === 'sadya'
-      ? `Adults: ${data.adults}, Kids: ${data.kids}`
-      : 'Family registration';
     const payload = {
       refId,
       name:    data.name,
@@ -909,7 +906,8 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       flat:    data.flat,
       email:   data.email,
       event:   data.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026',
-      details,
+      adults:  data.event === 'sadya' ? data.adults : '',
+      kids:    data.event === 'sadya' ? data.kids : '',
       amount:  '\u20b9' + data.total.toLocaleString('en-IN'),
       txnId:   data.txnId,
       status:  'Paid',
