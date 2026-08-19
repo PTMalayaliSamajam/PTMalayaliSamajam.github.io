@@ -240,39 +240,17 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   <!-- ══ SCREEN 0: LOGIN (email or phone) ══ -->
   <div id="loginSection">
     <div class="login-card">
-      <div class="login-icon">🔐</div>
-      <div class="login-title">Verify your identity</div>
-      <div class="login-sub">Only Prestige Tranquility residents can register. Choose how you'd like to verify.</div>
+      <div class="login-icon">📱</div>
+      <div class="login-title">Verify your mobile</div>
+      <div class="login-sub">Enter your mobile number to receive a one-time password. Only Prestige Tranquility residents can register.</div>
 
-      <!-- Method toggle -->
-      <div class="method-toggle">
-        <button class="method-btn" id="btn-email-method" onclick="switchMethod('email')">✉️ Email link</button>
-        <button class="method-btn active" id="btn-phone-method" onclick="switchMethod('phone')">📱 SMS OTP</button>
-      </div>
-
-      <!-- EMAIL flow -->
-      <div id="emailFlow" class="hidden">
-        <div id="emailStep">
-          <div class="login-input-wrap">
-            <input type="email" id="loginEmail" placeholder="priya@gmail.com" autocomplete="email">
-          </div>
-          <div class="login-status" id="loginStatus"></div>
-          <button class="btn-primary" id="sendLinkBtn" onclick="sendMagicLink()">Send login link →</button>
-        </div>
-        <div id="waitStep" class="hidden">
-          <div class="login-status info" id="waitMsg"></div>
-          <button class="btn-secondary" onclick="resetLogin()">← Use a different email</button>
-        </div>
-      </div>
-
-      <!-- PHONE flow -->
+      <!-- PHONE flow only -->
       <div id="phoneFlow">
         <div id="phoneStep">
           <div class="login-input-wrap">
             <input type="tel" id="loginPhone" placeholder="9876543210" maxlength="10" autocomplete="tel">
           </div>
           <div class="login-status" id="phoneStatus"></div>
-          <!-- reCAPTCHA container -->
           <div id="recaptcha-container" style="margin:10px 0;display:flex;justify-content:center;"></div>
           <button class="btn-primary" id="sendOtpBtn" onclick="sendOTP()">Send OTP →</button>
         </div>
@@ -526,8 +504,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, sendSignInLinkToEmail,
-           isSignInWithEmailLink, signInWithEmailLink,
+  import { getAuth,
            RecaptchaVerifier, signInWithPhoneNumber }  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
   /* ── FIREBASE CONFIG ── */
@@ -547,14 +524,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   let confirmationResult = null;
   let recaptchaVerifier  = null;
 
-  /* ══ METHOD SWITCH ══ */
-  window.switchMethod = function(method) {
-    document.getElementById('btn-email-method').classList.toggle('active', method === 'email');
-    document.getElementById('btn-phone-method').classList.toggle('active', method === 'phone');
-    document.getElementById('emailFlow').classList.toggle('hidden', method !== 'email');
-    document.getElementById('phoneFlow').classList.toggle('hidden', method !== 'phone');
-    if (method === 'phone' && !recaptchaVerifier) initRecaptcha();
-  };
+
 
   /* ══ RECAPTCHA ══ */
   function initRecaptcha() {
@@ -644,54 +614,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
     initRecaptcha();
   };
 
-  /* ══ CHECK IF RETURNING FROM EMAIL LINK ══ */
-  if (isSignInWithEmailLink(auth, window.location.href)) {
-    let email = window.localStorage.getItem('ptmsLoginEmail');
-    if (!email) email = window.prompt('Please confirm your email address:');
-    signInWithEmailLink(auth, email, window.location.href)
-      .then(result => {
-        window.localStorage.removeItem('ptmsLoginEmail');
-        window.history.replaceState({}, document.title, ACTION_URL);
-        onVerified(result.user.email);
-      })
-      .catch(() => {
-        setStatus('loginStatus','error','⚠️ This link has expired or already been used. Please request a new one.');
-        show('emailStep', true);
-        show('waitStep',  false);
-      });
-  }
 
-  /* ══ SEND MAGIC LINK ══ */
-  window.sendMagicLink = async function() {
-    const email = document.getElementById('loginEmail').value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setStatus('loginStatus','error','Please enter a valid email address.');
-      return;
-    }
-    const btn = document.getElementById('sendLinkBtn');
-    btn.disabled = true; btn.textContent = 'Sending…';
-    setStatus('loginStatus','','');
-    try {
-      await sendSignInLinkToEmail(auth, email, { url: ACTION_URL, handleCodeInApp: true });
-      window.localStorage.setItem('ptmsLoginEmail', email);
-      show('emailStep', false);
-      show('waitStep',  true);
-      document.getElementById('waitMsg').textContent =
-        `✉️ A login link has been sent to ${email}. Open your email and tap the link to continue.`;
-    } catch {
-      btn.disabled = false; btn.textContent = 'Send login link →';
-      setStatus('loginStatus','error','⚠️ Could not send link. Please try again.');
-    }
-  };
-
-  window.resetLogin = function() {
-    show('emailStep', true);
-    show('waitStep',  false);
-    setStatus('loginStatus','','');
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('sendLinkBtn').disabled = false;
-    document.getElementById('sendLinkBtn').textContent = 'Send login link →';
-  };
 
   function onVerified(identity) {
     window.verifiedEmail = identity;
