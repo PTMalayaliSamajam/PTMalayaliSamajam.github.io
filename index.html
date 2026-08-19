@@ -251,7 +251,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         <div class="event-card-body">
           <div class="event-card-name">Onam Sadya</div>
           <div class="event-card-date">26 August 2026</div>
-          <div class="event-card-price">Adult ₹550 · Kids ₹400</div>
+          <div class="event-card-price">Adult ₹550 · Kids ₹550</div>
         </div>
         <div class="radio-dot"><div class="radio-dot-inner"></div></div>
       </div>
@@ -314,7 +314,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       <div class="field">
         <label class="field-label">How many Kids?</label>
         <div class="qty-row">
-          <div><div class="qty-label">Kids</div><div class="qty-sub">₹400 per child</div></div>
+          <div><div class="qty-label">Kids</div><div class="qty-sub">₹550 per child</div></div>
           <div class="qty-ctrl">
             <button class="qty-btn" onclick="changeQty('kids',-1)">−</button>
             <span class="qty-val" id="kids-val">0</span>
@@ -529,11 +529,12 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 <script>
   /* ── APP CONFIG ── */
   const UPI_ID      = 'getepay.esafbank326548@icici';
-  const DRIVE_EMAIL = 'tranquilitymalayalisamajam@gmail.com';
+
   const SHEET_NAME  = 'Nammude Onam 2026 - Registrations';
+  const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbzKwBkEPtsC4ow10eCSD73xoY3a4icEompQDoa5eYWHXEtaMocALrS0bC-3mhFBfppNmA/exec';
   const MIN_ONAM    = 3000;
   const ADULT_PRICE = 550;
-  const KID_PRICE   = 400;
+  const KID_PRICE   = 550;
 
   let selectedEvent = null;
   let adults = 1, kids = 0;
@@ -675,22 +676,34 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   /* ── SAVE TO DRIVE ── */
   async function saveToDrive(data, refId, ts) {
     const el = document.getElementById('driveStatus');
-    let details = data.event === 'sadya'
-      ? `Event: Onam Sadya\nDate: 26 August 2026\nAdults: ${data.adults}\nKids: ${data.kids}`
-      : `Event: Nammude Onam 2026\nDates: Oct 25 & Oct 31, 2026`;
-    const prompt = `Save to Google Sheet "${SHEET_NAME}" for ${DRIVE_EMAIL}.\nHeaders: Ref ID|Name|Phone|Flat|Email|Event|Details|Amount|Status|Registered On\nRow: ${refId}|${data.name}|${data.phone}|${data.flat}|${data.email}|${data.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam'}|${data.event === 'sadya' ? `Adults:${data.adults} Kids:${data.kids}` : 'Family'}|₹${data.total}|Paid|${ts}`;
+    const details = data.event === 'sadya'
+      ? `Adults: ${data.adults}, Kids: ${data.kids}`
+      : 'Family registration';
+    const payload = {
+      refId,
+      name:    data.name,
+      phone:   data.phone,
+      flat:    data.flat,
+      email:   data.email,
+      event:   data.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026',
+      details,
+      amount:  '\u20b9' + data.total.toLocaleString('en-IN'),
+      status:  'Paid',
+      ts
+    };
     try {
-      const res  = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:512, messages:[{role:'user',content:prompt}], mcp_servers:[{type:'url',url:'https://drivemcp.googleapis.com/mcp/v1',name:'gdrive'}] })
+      const res = await fetch(SHEET_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body:    JSON.stringify(payload)
       });
       const json = await res.json();
-      if (json.error) throw new Error(json.error.message);
+      if (!json.success) throw new Error('Sheet error');
       el.className = 'drive-status saved';
-      el.innerHTML = '✅ <span>Saved to Google Drive · ' + SHEET_NAME + '</span>';
+      el.innerHTML = '\u2705 <span>Registration saved to Google Sheets</span>';
     } catch {
       el.className = 'drive-status failed';
-      el.innerHTML = '⚠️ <span>Drive save failed. Note manually: ' + [refId, data.name, data.flat, data.phone].join(' | ') + '</span>';
+      el.innerHTML = '\u26a0\ufe0f <span>Save failed. Note manually: ' + [refId, data.name, data.flat, data.phone].join(' | ') + '</span>';
     }
   }
 
