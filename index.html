@@ -356,6 +356,11 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         <div class="error-msg" id="err-s-fflat">Enter your flat or door number</div>
       </div>
       <div class="field">
+        <label class="field-label" for="s-femail">Email address <span class="req">*</span></label>
+        <input type="email" id="s-femail" placeholder="priya@gmail.com" autocomplete="email">
+        <div class="error-msg" id="err-s-femail">Enter a valid email address</div>
+      </div>
+      <div class="field">
         <label class="field-label">How many Adults? <span class="req">*</span></label>
         <div class="qty-row">
           <div><div class="qty-label">Adults</div><div class="qty-sub">₹550 per person</div></div>
@@ -410,6 +415,11 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         <label class="field-label" for="o-fflat">Flat / Door number <span class="req">*</span></label>
         <input type="text" id="o-fflat" placeholder="A-204">
         <div class="error-msg" id="err-o-fflat">Enter your flat or door number</div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="o-femail">Email address <span class="req">*</span></label>
+        <input type="email" id="o-femail" placeholder="priya@gmail.com" autocomplete="email">
+        <div class="error-msg" id="err-o-femail">Enter a valid email address</div>
       </div>
       <div class="field">
         <label class="field-label" for="o-fonam">Onam Contribution <span class="req">*</span></label>
@@ -782,22 +792,22 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
   /* ── SADYA → PAYMENT ── */
   function goToPaymentSadya() {
-    const name = v('s-fname'), phone = v('s-fphone'), flat = v('s-fflat');
-    const ok = { name: !!name, phone: /^\d{10}$/.test(phone), flat: !!flat, adults: adults >= 1 };
-    showErr('s-fname', !ok.name); showErr('s-fphone', !ok.phone); showErr('s-fflat', !ok.flat); showErr('adults', !ok.adults);
-    if (!ok.name || !ok.phone || !ok.flat || !ok.adults) return;
+    const name = v('s-fname'), phone = v('s-fphone'), flat = v('s-fflat'), email = v('s-femail');
+    const ok = { name: !!name, phone: /^\d{10}$/.test(phone), flat: !!flat, email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), adults: adults >= 1 };
+    showErr('s-fname', !ok.name); showErr('s-fphone', !ok.phone); showErr('s-fflat', !ok.flat); showErr('s-femail', !ok.email); showErr('adults', !ok.adults);
+    if (!ok.name || !ok.phone || !ok.flat || !ok.email || !ok.adults) return;
     const total = adults * ADULT_PRICE + kids * KID_PRICE;
-    current = { event:'sadya', name, phone, flat, email: window.verifiedEmail || '', adults, kids, total };
+    current = { event:'sadya', name, phone, flat, email, adults, kids, total };
     buildPayScreen(name, flat, total, 'Onam Sadya · 26 Aug 2026 · PTMS');
   }
 
   /* ── ONAM → PAYMENT ── */
   function goToPaymentOnam() {
-    const name = v('o-fname'), phone = v('o-fphone'), flat = v('o-fflat'), onam = parseInt(document.getElementById('o-fonam').value) || 0;
-    const ok = { name: !!name, phone: /^\d{10}$/.test(phone), flat: !!flat, onam: onam >= MIN_ONAM };
-    showErr('o-fname', !ok.name); showErr('o-fphone', !ok.phone); showErr('o-fflat', !ok.flat); showErr('o-fonam', !ok.onam);
-    if (!ok.name || !ok.phone || !ok.flat || !ok.onam) return;
-    current = { event:'onam', name, phone, flat, email: window.verifiedEmail || '', onam, total: onam };
+    const name = v('o-fname'), phone = v('o-fphone'), flat = v('o-fflat'), email = v('o-femail'), onam = parseInt(document.getElementById('o-fonam').value) || 0;
+    const ok = { name: !!name, phone: /^\d{10}$/.test(phone), flat: !!flat, email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), onam: onam >= MIN_ONAM };
+    showErr('o-fname', !ok.name); showErr('o-fphone', !ok.phone); showErr('o-fflat', !ok.flat); showErr('o-femail', !ok.email); showErr('o-fonam', !ok.onam);
+    if (!ok.name || !ok.phone || !ok.flat || !ok.email || !ok.onam) return;
+    current = { event:'onam', name, phone, flat, email, onam, total: onam };
     buildPayScreen(name, flat, onam, 'Nammude Onam 2026 · PTMS');
   }
 
@@ -974,7 +984,7 @@ ${extraRows}
 
   /* ── NEW REGISTRATION ── */
   function newRegistration() {
-    ['s-fname','s-fphone','s-fflat','o-fname','o-fphone','o-fflat'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    ['s-fname','s-fphone','s-fflat','s-femail','o-fname','o-fphone','o-fflat','o-femail'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
     document.getElementById('o-fonam').value = MIN_ONAM;
     document.getElementById('txnId').value = '';
     showErr('txnId', false);
