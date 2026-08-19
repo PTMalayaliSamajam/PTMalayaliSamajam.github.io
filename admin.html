@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTMS – Entry Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh; padding: 1rem; }
+.app { max-width: 480px; margin: 0 auto; padding-bottom: 3rem; }
+
+.header {
+  text-align: center; padding: 1.25rem 1rem;
+  background: linear-gradient(160deg, #fffdf5, #fff8e8);
+  border: 0.5px solid #e8d89a; border-radius: 14px;
+  margin-bottom: 1.25rem;
+}
+.header-title { font-family: 'Playfair Display', serif; font-size: 20px; color: #3d2a00; margin-bottom: 3px; }
+.header-sub { font-size: 12px; color: #a08030; }
+
+.scanner-card {
+  background: #fffdf8; border: 0.5px solid #e8d89a;
+  border-radius: 14px; padding: 1.25rem;
+  margin-bottom: 1rem; text-align: center;
+}
+.scanner-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px; color: #8b6914; margin-bottom: 1rem;
+}
+#reader { border-radius: 10px; overflow: hidden; width: 100% !important; }
+#reader video { border-radius: 10px; }
+
+.btn-primary {
+  width: 100%; height: 48px; background: #c8920a; color: #fffdf0;
+  border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 0.75rem;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #b07d08; }
+.btn-secondary {
+  width: 100%; height: 44px; background: transparent; color: #8b6914;
+  border: 0.5px solid #c8a84b; border-radius: 10px; font-size: 14px;
+  cursor: pointer; margin-top: 8px; font-family: 'Inter', sans-serif;
+}
+
+/* Result card */
+.result-card {
+  background: #fffdf8; border: 0.5px solid #e8d89a;
+  border-radius: 14px; padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.result-header {
+  text-align: center; padding-bottom: 1rem;
+  border-bottom: 0.5px solid #e8d89a; margin-bottom: 1rem;
+}
+.result-icon { font-size: 40px; margin-bottom: 6px; }
+.result-status {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; margin-bottom: 3px;
+}
+.result-status.valid   { color: #065f46; }
+.result-status.invalid { color: #b91c1c; }
+.result-refid { font-size: 11px; color: #b8963a; letter-spacing: 0.8px; }
+
+.rrow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 0.5px solid #f0e8c8; font-size: 13px;
+}
+.rrow:last-of-type { border-bottom: none; }
+.rkey { color: #a08030; flex-shrink: 0; }
+.rval { color: #5c4010; font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
+
+.badge-valid   { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.badge-invalid { background: #fee2e2; color: #b91c1c; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+
+.manual-input {
+  width: 100%; height: 48px; border: 0.5px solid #ddd0a0; border-radius: 10px;
+  padding: 0 14px; font-size: 15px; color: #3d2a00; background: #fff;
+  font-family: 'Inter', sans-serif; margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.manual-input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(200,146,10,0.13); }
+
+.divider { text-align: center; font-size: 12px; color: #c8b070; margin: 10px 0; }
+
+.hidden { display: none !important; }
+
+.page-footer { text-align: center; margin-top: 2rem; font-size: 11px; color: #b8963a; font-family: 'Playfair Display', serif; line-height: 2; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-title">🎟️ PTMS Entry Scanner</div>
+    <div class="header-sub">Nammude Onam 2026 · Admin only</div>
+  </div>
+
+  <!-- SCANNER -->
+  <div id="scannerSection">
+    <div class="scanner-card">
+      <div class="scanner-card-title">📷 Scan attendee QR code</div>
+      <div id="reader"></div>
+      <button class="btn-primary" id="startBtn" onclick="startScanner()">Start Camera</button>
+      <button class="btn-secondary" id="stopBtn" onclick="stopScanner()" style="display:none;">Stop Camera</button>
+    </div>
+
+    <div class="divider">── or enter manually ──</div>
+
+    <div class="scanner-card">
+      <div class="scanner-card-title">⌨️ Enter Ref ID manually</div>
+      <input class="manual-input" id="manualRef" placeholder="ONA2026-0001" maxlength="15">
+      <button class="btn-primary" onclick="lookupManual()">Look up →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultSection" class="hidden">
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-icon" id="resultIcon">✅</div>
+        <div class="result-status valid" id="resultStatus">Valid Registration</div>
+        <div class="result-refid" id="resultRefId"></div>
+      </div>
+      <div id="result-rows"></div>
+    </div>
+    <button class="btn-primary" onclick="scanAnother()">← Scan another</button>
+  </div>
+
+  <div class="page-footer">
+    🌸 Prestige Tranquility Malayali Samajam 🌸
+  </div>
+</div>
+
+<script>
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzPj2ug3v5l0ZT-EfKX0mKgrTNQWYCXsACk6XPOikBHFtOPGcgA72Vo785ecMF-ot-1Vw/exec';
+  let html5QrCode = null;
+
+  function startScanner() {
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display  = 'block';
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        stopScanner();
+        processQR(decodedText);
+      },
+      () => {}
+    ).catch(err => {
+      alert('Camera error: ' + err);
+      document.getElementById('startBtn').style.display = 'block';
+      document.getElementById('stopBtn').style.display  = 'none';
+    });
+  }
+
+  function stopScanner() {
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        document.getElementById('startBtn').style.display = 'block';
+        document.getElementById('stopBtn').style.display  = 'none';
+      });
+    }
+  }
+
+  function processQR(text) {
+    try {
+      const data = JSON.parse(text);
+      showResult(data, true);
+    } catch {
+      // Not JSON — show invalid
+      showResult({ refId: text }, false);
+    }
+  }
+
+  function lookupManual() {
+    const ref = document.getElementById('manualRef').value.trim().toUpperCase();
+    if (!ref) { alert('Please enter a Ref ID'); return; }
+    // For manual lookup, fetch from sheet
+    fetchFromSheet(ref);
+  }
+
+  async function fetchFromSheet(refId) {
+    try {
+      const res  = await fetch(SHEET_URL + '?refId=' + encodeURIComponent(refId));
+      const json = await res.json();
+      if (json.success && json.data) {
+        showResult(json.data, true);
+      } else {
+        showResult({ refId }, false);
+      }
+    } catch {
+      // Sheet lookup failed — show what we have
+      showResult({ refId, note: 'Could not verify against sheet' }, null);
+    }
+  }
+
+  function showResult(data, valid) {
+    document.getElementById('scannerSection').classList.add('hidden');
+    document.getElementById('resultSection').classList.remove('hidden');
+
+    const icon   = document.getElementById('resultIcon');
+    const status = document.getElementById('resultStatus');
+    const refEl  = document.getElementById('resultRefId');
+
+    if (valid === true) {
+      icon.textContent   = '✅';
+      status.textContent = 'Valid Registration';
+      status.className   = 'result-status valid';
+    } else if (valid === false) {
+      icon.textContent   = '❌';
+      status.textContent = 'Invalid QR Code';
+      status.className   = 'result-status invalid';
+    } else {
+      icon.textContent   = '⚠️';
+      status.textContent = 'Could not verify';
+      status.className   = 'result-status';
+    }
+
+    refEl.textContent = data.refId || '';
+
+    const row = (k, v) => v ? `<div class="rrow"><span class="rkey">${k}</span><span class="rval">${v}</span></div>` : '';
+    let rows = '';
+    rows += row('Name',   data.name);
+    rows += row('Flat',   data.flat);
+    rows += row('Phone',  data.phone);
+    rows += row('Event',  data.event);
+    rows += row('Amount', data.amount);
+    if (data.note) rows += row('Note', data.note);
+    rows += `<div class="rrow"><span class="rkey">Status</span><span class="rval">
+      ${valid === true ? '<span class="badge-valid">✅ Paid</span>' : valid === false ? '<span class="badge-invalid">❌ Invalid</span>' : '<span>⚠️ Unverified</span>'}
+    </span></div>`;
+
+    document.getElementById('result-rows').innerHTML = rows;
+  }
+
+  function scanAnother() {
+    document.getElementById('resultSection').classList.add('hidden');
+    document.getElementById('scannerSection').classList.remove('hidden');
+    document.getElementById('manualRef').value = '';
+    document.getElementById('result-rows').innerHTML = '';
+  }
+</script>
+</body>
+</html>
