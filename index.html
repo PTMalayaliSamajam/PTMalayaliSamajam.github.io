@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTMS – Event Registration 2026</title>
+<meta name="description" content="Register for Prestige Tranquility Malayali Samajam events – Onam Sadya or Nammude Onam 2026.">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #fdf9f0;
+  min-height: 100vh;
+  padding: 1rem;
+}
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  text-align: center;
+  padding: 1.75rem 1rem 1.5rem;
+  background: linear-gradient(160deg, #fffdf5 0%, #fff8e8 100%);
+  border: 0.5px solid #e8d89a;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(212,180,95,0.2) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-corner { position: absolute; font-size: 30px; opacity: 0.32; }
+.hero-corner.tl { top: 8px; left: 12px; transform: rotate(-15deg); }
+.hero-corner.tr { top: 8px; right: 12px; transform: rotate(15deg); }
+.hero-corner.bl { bottom: 8px; left: 12px; transform: rotate(10deg); }
+.hero-corner.br { bottom: 8px; right: 12px; transform: rotate(-10deg); }
+.hero-frame {
+  border: 1.5px solid #c8a84b;
+  border-radius: 10px;
+  padding: 1.1rem 1.5rem 1rem;
+  margin: 0 0.5rem;
+  position: relative;
+}
+.org-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 11px; letter-spacing: 2.5px;
+  color: #8b6914; text-transform: uppercase; margin-bottom: 2px;
+}
+.org-presents { font-size: 11px; color: #b8963a; font-style: italic; margin-bottom: 10px; }
+.event-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 48px; font-weight: 700; color: #c8920a;
+  line-height: 1; margin-bottom: 2px;
+  text-shadow: 0 1px 4px rgba(200,146,10,0.2);
+}
+.event-subtitle {
+  font-family: 'Dancing Script', cursive;
+  font-size: 42px; font-weight: 700; color: #b07d08;
+  line-height: 1; margin-bottom: 10px;
+}
+.leaf-row { display: flex; justify-content: center; gap: 8px; margin: 6px 0; opacity: 0.55; font-size: 18px; }
+.event-dates { font-family: 'Playfair Display', serif; font-size: 14px; color: #7a5c10; letter-spacing: 0.5px; }
+
+/* ── EVENT SELECTOR (Step 0) ── */
+.event-select-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px; color: #8b6914;
+  text-align: center; margin-bottom: 1rem;
+}
+.event-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.2rem; }
+.event-card {
+  border: 1.5px solid #ddd0a0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  background: #ffffff;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  display: flex; align-items: center; gap: 14px;
+}
+.event-card:hover { border-color: #c8920a; background: #fffdf5; }
+.event-card.selected {
+  border-color: #c8920a;
+  background: #fff8e8;
+  box-shadow: 0 0 0 3px rgba(200,146,10,0.13);
+}
+.event-card-icon { font-size: 32px; flex-shrink: 0; }
+.event-card-body { flex: 1; }
+.event-card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 600; color: #3d2a00; margin-bottom: 2px;
+}
+.event-card-date { font-size: 12px; color: #a08030; }
+.event-card-price { font-size: 12px; color: #7a5010; margin-top: 3px; font-weight: 500; }
+.radio-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid #ddd0a0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s;
+}
+.event-card.selected .radio-dot { border-color: #c8920a; }
+.radio-dot-inner {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #c8920a; display: none;
+}
+.event-card.selected .radio-dot-inner { display: block; }
+
+/* ── STEP INDICATOR ── */
+.step-indicator {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 1.5rem; padding: 0 0.25rem;
+}
+.step { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #aaa; }
+.step.active { color: #b07d08; font-weight: 600; }
+.step.done   { color: #3a7d44; }
+.step-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid #e8d89a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; flex-shrink: 0; background: #fffdf5;
+}
+.step.active .step-dot { border-color: #c8920a; background: #fff8e8; color: #c8920a; }
+.step.done   .step-dot { border-color: #3a7d44; background: #f0faf2; color: #3a7d44; }
+.step-line { flex: 1; height: 0.5px; background: #e8d89a; }
+
+/* ── SECTION CARD ── */
+.section-card {
+  background: #fffdf8;
+  border: 0.5px solid #e8d89a;
+  border-radius: 14px;
+  padding: 1.4rem;
+  margin-bottom: 1rem;
+}
+.section-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px; color: #8b6914;
+  margin-bottom: 1.2rem;
+  display: flex; align-items: center; gap: 7px;
+}
+.section-card-title svg { width: 16px; height: 16px; stroke: #c8920a; fill: none; stroke-width: 1.8; }
+
+/* ── FIELDS ── */
+.field { margin-bottom: 1.1rem; }
+.field:last-child { margin-bottom: 0; }
+.field-label { display: block; font-size: 14px; font-weight: 600; color: #3d2a00; margin-bottom: 7px; }
+.field-label .req { color: #c0392b; margin-left: 2px; }
+input[type="text"], input[type="tel"], input[type="email"], input[type="number"] {
+  width: 100%; height: 48px;
+  border: 0.5px solid #ddd0a0; border-radius: 10px;
+  padding: 0 14px; font-size: 15px; color: #3d2a00;
+  background: #ffffff; font-family: 'Inter', sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none; appearance: none;
+}
+input:focus {
+  outline: none; border-color: #c8920a;
+  box-shadow: 0 0 0 3px rgba(200,146,10,0.13);
+}
+.error-msg { font-size: 11px; color: #d63b3b; margin-top: 5px; display: none; }
+.field-hint { font-size: 12px; color: #a08030; margin-top: 5px; }
+
+/* ── QUANTITY ROW ── */
+.qty-row {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 0.5px solid #ddd0a0;
+  border-radius: 10px; padding: 10px 14px;
+}
+.qty-label { flex: 1; font-size: 15px; color: #3d2a00; }
+.qty-sub { font-size: 12px; color: #a08030; margin-top: 2px; }
+.qty-ctrl { display: flex; align-items: center; gap: 10px; }
+.qty-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid #c8a84b; background: #fff8e8;
+  font-size: 20px; color: #c8920a; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Inter', sans-serif; line-height: 1;
+  transition: background 0.1s;
+}
+.qty-btn:hover { background: #ffefc0; }
+.qty-val { font-size: 18px; font-weight: 600; color: #3d2a00; min-width: 24px; text-align: center; }
+
+/* ── SUMMARY CARD ── */
+.summary-card {
+  background: #f9f5ea;
+  border: 0.5px solid #ddd0a0;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-top: 1rem;
+}
+.summary-row { display: flex; justify-content: space-between; font-size: 14px; color: #7a5c10; padding: 5px 0; }
+.summary-divider { border: none; border-top: 0.5px solid #ddd0a0; margin: 7px 0; }
+.summary-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 600; color: #3d2a00; padding: 5px 0; }
+
+/* ── CONTRIBUTION BOX ── */
+.contribution-box {
+  background: #fff8e8; border: 1px solid #c8a84b;
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 1rem;
+}
+.contribution-label { font-size: 13px; color: #8b6914; }
+.contribution-sub   { font-size: 11px; color: #a08030; margin-top: 3px; }
+.contribution-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 600; color: #c8920a;
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%; height: 50px;
+  background: #c8920a; color: #fffdf0;
+  border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  font-family: 'Inter', sans-serif; letter-spacing: 0.3px;
+  transition: background 0.15s; margin-top: 0.5rem;
+}
+.btn-primary:hover  { background: #b07d08; }
+.btn-primary:active { opacity: 0.92; }
+.btn-secondary {
+  width: 100%; height: 44px;
+  background: transparent; color: #8b6914;
+  border: 0.5px solid #c8a84b; border-radius: 10px;
+  font-size: 14px; cursor: pointer; margin-top: 8px;
+  font-family: 'Inter', sans-serif; transition: background 0.15s;
+}
+.btn-secondary:hover { background: #fff8e8; }
+.btn-ghost {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; height: 42px;
+  background: transparent; color: #8b6914;
+  border: 0.5px solid #c8a84b; border-radius: 10px;
+  font-size: 13px; cursor: pointer; margin-top: 8px;
+  font-family: 'Inter', sans-serif;
+}
+.btn-ghost svg { width: 15px; height: 15px; stroke: #c8920a; fill: none; stroke-width: 1.8; }
+
+/* ── QR / PAYMENT ── */
+.qr-wrap { text-align: center; padding: 0.5rem 0; }
+.qr-hint { font-size: 12px; color: #8b6914; margin-bottom: 6px; }
+.qr-box {
+  display: inline-block; background: white; padding: 10px;
+  border-radius: 10px; border: 1px solid #e8d89a; margin: 6px 0;
+}
+.upi-pill {
+  background: #fff8e8; border: 1px solid #c8a84b; border-radius: 8px;
+  padding: 10px 16px; text-align: center; font-size: 14px; font-weight: 600;
+  color: #7a5010; word-break: break-all; margin: 8px 0;
+}
+.amount-big {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 600; color: #c8920a;
+  text-align: center; margin: 8px 0 2px;
+}
+.amount-sub { font-size: 12px; color: #a08030; text-align: center; margin-bottom: 14px; }
+.divider { text-align: center; font-size: 15px; opacity: 0.45; margin: 14px 0; }
+.pay-steps { list-style: none; padding: 0; }
+.pay-steps li {
+  display: flex; gap: 10px; font-size: 13px; color: #666;
+  padding: 6px 0; border-bottom: 0.5px solid #f5edd8;
+}
+.pay-steps li:last-child { border-bottom: none; }
+.pay-steps li .step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #fff8e8; border: 1px solid #c8a84b;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #c8920a;
+  flex-shrink: 0; margin-top: 1px;
+}
+
+/* ── RECEIPT ── */
+.receipt-hdr { text-align: center; padding-bottom: 1rem; border-bottom: 0.5px solid #e8d89a; margin-bottom: 1rem; }
+.receipt-icon  { font-size: 40px; margin-bottom: 8px; }
+.receipt-title { font-family: 'Playfair Display', serif; font-size: 18px; color: #8b6914; }
+.receipt-event { font-size: 12px; color: #a08030; margin-top: 2px; }
+.receipt-refid { font-size: 11px; color: #b8963a; margin-top: 4px; letter-spacing: 0.8px; }
+.rrow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 0.5px solid #f0e8c8; font-size: 13px;
+}
+.rrow:last-of-type { border-bottom: none; }
+.rkey { color: #a08030; flex-shrink: 0; }
+.rval { color: #5c4010; font-weight: 500; text-align: right; max-width: 62%; word-break: break-word; }
+.badge-paid { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+
+/* ── DRIVE STATUS ── */
+.drive-status {
+  display: flex; align-items: center; gap: 10px; font-size: 12px;
+  padding: 11px 14px; border-radius: 10px;
+  background: #fffdf8; border: 0.5px solid #e8d89a; margin-top: 10px; color: #888;
+}
+.drive-status.saved  { color: #065f46; background: #f0faf2; border-color: #a7d7b2; }
+.drive-status.failed { color: #b91c1c; background: #fff0f0; border-color: #fca5a5; }
+.spinner {
+  width: 14px; height: 14px; border: 2px solid #e8d89a;
+  border-top-color: #c8920a; border-radius: 50%;
+  animation: spin 0.8s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.hidden { display: none !important; }
+
+/* ── FOOTER ── */
+.page-footer {
+  text-align: center; margin-top: 2.5rem;
+  font-size: 11px; color: #b8963a;
+  font-family: 'Playfair Display', serif; line-height: 2;
+}
+.page-footer small { font-family: 'Inter', sans-serif; font-size: 10px; color: #c8b070; }
+
+@media (max-width: 400px) {
+  .event-title    { font-size: 40px; }
+  .event-subtitle { font-size: 36px; }
+  .amount-big     { font-size: 30px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-corner tl">🌿</span>
+    <span class="hero-corner tr">🌿</span>
+    <span class="hero-corner bl">🌸</span>
+    <span class="hero-corner br">🌸</span>
+    <div class="hero-frame">
+      <div class="org-name">Prestige Tranquility</div>
+      <div class="org-presents">Malayali Samajam presents</div>
+      <div class="event-title">Nammude</div>
+      <div class="event-subtitle">Onam 2026</div>
+      <div class="leaf-row">🍃 🪷 🍃</div>
+      <div class="event-dates">Oct 25 &amp; Oct 31, 2026</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCREEN 0 — EVENT SELECTION
+  ══════════════════════════════════════ -->
+  <div id="selectSection">
+    <p class="event-select-label">What would you like to register for?</p>
+    <div class="event-cards">
+
+      <div class="event-card" id="card-sadya" onclick="selectEvent('sadya')">
+        <div class="event-card-icon">🍛</div>
+        <div class="event-card-body">
+          <div class="event-card-name">Onam Sadya</div>
+          <div class="event-card-date">26 August 2026</div>
+          <div class="event-card-price">Adult ₹550 · Kids ₹400</div>
+        </div>
+        <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+      </div>
+
+      <div class="event-card" id="card-onam" onclick="selectEvent('onam')">
+        <div class="event-card-icon">🎉</div>
+        <div class="event-card-body">
+          <div class="event-card-name">Nammude Onam</div>
+          <div class="event-card-date">Oct 25 &amp; Oct 31, 2026</div>
+          <div class="event-card-price">Min. contribution ₹3,000 per family</div>
+        </div>
+        <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+      </div>
+
+    </div>
+    <button class="btn-primary" onclick="goToForm()">Continue →</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP INDICATOR (shown after selection)
+  ══════════════════════════════════════ -->
+  <div class="step-indicator hidden" id="stepBar">
+    <div class="step active" id="s1"><div class="step-dot">1</div><span>Details</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="s2"><div class="step-dot">2</div><span>Pay</span></div>
+    <div class="step-line"></div>
+    <div class="step" id="s3"><div class="step-dot">3</div><span>Receipt</span></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 1A — ONAM SADYA FORM
+  ══════════════════════════════════════ -->
+  <div id="formSadya" class="hidden">
+    <div class="section-card">
+      <div class="section-card-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Onam Sadya — Registration details
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="s-fname">Full name <span class="req">*</span></label>
+        <input type="text" id="s-fname" placeholder="Priya Nair" autocomplete="name">
+        <div class="error-msg" id="err-s-fname">Please enter your full name</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="s-fphone">Phone number <span class="req">*</span></label>
+        <input type="tel" id="s-fphone" placeholder="9876543210" maxlength="10" autocomplete="tel">
+        <div class="error-msg" id="err-s-fphone">Enter a valid 10-digit mobile number</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="s-fflat">Flat / Door number <span class="req">*</span></label>
+        <input type="text" id="s-fflat" placeholder="A-204">
+        <div class="error-msg" id="err-s-fflat">Enter your flat or door number</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="s-femail">Email address <span class="req">*</span></label>
+        <input type="email" id="s-femail" placeholder="priya@example.com" autocomplete="email">
+        <div class="error-msg" id="err-s-femail">Enter a valid email address</div>
+      </div>
+
+      <!-- Adults qty -->
+      <div class="field">
+        <label class="field-label">How many Adults? <span class="req">*</span></label>
+        <div class="qty-row">
+          <div>
+            <div class="qty-label">Adults</div>
+            <div class="qty-sub">₹550 per person</div>
+          </div>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty('adults', -1)">−</button>
+            <span class="qty-val" id="adults-val">1</span>
+            <button class="qty-btn" onclick="changeQty('adults', 1)">+</button>
+          </div>
+        </div>
+        <div class="error-msg" id="err-adults">Please add at least 1 adult</div>
+      </div>
+
+      <!-- Kids qty -->
+      <div class="field">
+        <label class="field-label">How many Kids?</label>
+        <div class="qty-row">
+          <div>
+            <div class="qty-label">Kids</div>
+            <div class="qty-sub">₹400 per child</div>
+          </div>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty('kids', -1)">−</button>
+            <span class="qty-val" id="kids-val">0</span>
+            <button class="qty-btn" onclick="changeQty('kids', 1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-card">
+        <div class="summary-row"><span id="adults-label">Adults × 1</span><span id="adults-amt">₹550</span></div>
+        <div class="summary-row" id="kids-row"><span id="kids-label">Kids × 0</span><span id="kids-amt">₹0</span></div>
+        <hr class="summary-divider">
+        <div class="summary-total"><span>Total</span><span id="sadya-total">₹550</span></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="goToPaymentSadya()">Continue to payment →</button>
+    <button class="btn-secondary" onclick="backToSelect()">← Change event</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 1B — NAMMUDE ONAM FORM
+  ══════════════════════════════════════ -->
+  <div id="formOnam" class="hidden">
+    <div class="section-card">
+      <div class="section-card-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Nammude Onam — Registration details
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="o-fname">Full name <span class="req">*</span></label>
+        <input type="text" id="o-fname" placeholder="Priya Nair" autocomplete="name">
+        <div class="error-msg" id="err-o-fname">Please enter your full name</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="o-fphone">Phone number <span class="req">*</span></label>
+        <input type="tel" id="o-fphone" placeholder="9876543210" maxlength="10" autocomplete="tel">
+        <div class="error-msg" id="err-o-fphone">Enter a valid 10-digit mobile number</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="o-fflat">Flat / Door number <span class="req">*</span></label>
+        <input type="text" id="o-fflat" placeholder="A-204">
+        <div class="error-msg" id="err-o-fflat">Enter your flat or door number</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="o-femail">Email address <span class="req">*</span></label>
+        <input type="email" id="o-femail" placeholder="priya@example.com" autocomplete="email">
+        <div class="error-msg" id="err-o-femail">Enter a valid email address</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="o-fonam">Onam Contribution <span class="req">*</span></label>
+        <input type="number" id="o-fonam" value="3000" min="3000" step="100"
+               oninput="enforceMin()" onblur="enforceMin()">
+        <div class="field-hint">Minimum contribution: ₹3,000</div>
+        <div class="error-msg" id="err-o-fonam">Minimum contribution is ₹3,000</div>
+      </div>
+
+      <div class="contribution-box">
+        <div>
+          <div class="contribution-label">🎟️ Total amount to pay</div>
+          <div class="contribution-sub">Oct 25 &amp; Oct 31 · Both days included</div>
+        </div>
+        <div class="contribution-amount" id="onam-display-amount">₹3,000</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="goToPaymentOnam()">Continue to payment →</button>
+    <button class="btn-secondary" onclick="backToSelect()">← Change event</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 2 — PAYMENT (shared)
+  ══════════════════════════════════════ -->
+  <div id="paySection" class="hidden">
+    <div class="section-card">
+      <div class="section-card-title">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Complete your payment
+      </div>
+      <div class="qr-wrap">
+        <div class="qr-hint">Scan with any UPI app</div>
+        <div class="qr-box"><div id="qrcode"></div></div>
+        <div class="qr-hint" style="margin-bottom:4px;">or pay directly to UPI ID</div>
+        <div class="upi-pill">getepay.esafbank326548@icici</div>
+        <div class="amount-big" id="pay-amount">₹3,000</div>
+        <div class="amount-sub" id="payFor">Nammude Onam 2026 · PTMS</div>
+      </div>
+      <div class="divider">🌿 ── 🌿</div>
+      <ul class="pay-steps">
+        <li><span class="step-num">1</span><span>Open PhonePe, GPay, Paytm or BHIM</span></li>
+        <li><span class="step-num">2</span><span>Scan the QR code or enter the UPI ID above</span></li>
+        <li><span class="step-num">3</span><span>Enter the exact amount shown above</span></li>
+        <li><span class="step-num">4</span><span>Add your flat number in the payment note / remarks</span></li>
+        <li><span class="step-num">5</span><span>Return here and click the button below</span></li>
+      </ul>
+    </div>
+    <button class="btn-primary" onclick="confirmPayment()">✓ &nbsp;I've completed payment</button>
+    <button class="btn-secondary" onclick="goBackToForm()">← Back to details</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 3 — RECEIPT (shared)
+  ══════════════════════════════════════ -->
+  <div id="receiptSection" class="hidden">
+    <div class="section-card">
+      <div class="receipt-hdr">
+        <div class="receipt-icon">🎊</div>
+        <div class="receipt-title">Registration confirmed!</div>
+        <div class="receipt-event" id="r-event-name">Nammude Onam 2026 · Prestige Tranquility Malayali Samajam</div>
+        <div class="receipt-refid" id="receiptId">ONA2026-0001</div>
+      </div>
+      <div id="receipt-rows"></div>
+      <div class="divider" style="margin-top:12px;">🌸 Thiruvonam Ashamsakal 🌸</div>
+    </div>
+
+    <div class="drive-status" id="driveStatus">
+      <div class="spinner"></div>
+      <span>Saving registration…</span>
+    </div>
+
+    <button class="btn-ghost" onclick="printReceipt()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / save receipt as PDF
+    </button>
+    <button class="btn-secondary" style="margin-top:6px;" onclick="newRegistration()">Register another family</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    🌸 Prestige Tranquility Malayali Samajam 🌸<br>
+    <small>tranquilitymalayalisamajam@gmail.com</small>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+  /* ── CONFIG ── */
+  const UPI_ID      = 'getepay.esafbank326548@icici';
+  const DRIVE_EMAIL = 'tranquilitymalayalisamajam@gmail.com';
+  const SHEET_NAME  = 'Nammude Onam 2026 - Registrations';
+  const MIN_ONAM    = 3000;
+  const ADULT_PRICE = 550;
+  const KID_PRICE   = 400;
+
+  let selectedEvent = null; // 'sadya' | 'onam'
+  let adults = 1, kids = 0;
+  let current = {};
+  let regCount = parseInt(localStorage.getItem('ptms2026n') || '0');
+
+  /* ── EVENT SELECTION ── */
+  function selectEvent(type) {
+    selectedEvent = type;
+    document.getElementById('card-sadya').classList.toggle('selected', type === 'sadya');
+    document.getElementById('card-onam').classList.toggle('selected',  type === 'onam');
+  }
+
+  function goToForm() {
+    if (!selectedEvent) {
+      alert('Please select an event to continue.');
+      return;
+    }
+    show('selectSection', false);
+    show('stepBar', true);
+    if (selectedEvent === 'sadya') {
+      show('formSadya', true);
+    } else {
+      show('formOnam', true);
+    }
+    setStep(1);
+  }
+
+  function backToSelect() {
+    show('formSadya', false);
+    show('formOnam',  false);
+    show('stepBar',   false);
+    show('selectSection', true);
+  }
+
+  /* ── QTY CONTROLS (Sadya) ── */
+  function changeQty(type, delta) {
+    if (type === 'adults') {
+      adults = Math.max(0, adults + delta);
+      document.getElementById('adults-val').textContent = adults;
+    } else {
+      kids = Math.max(0, kids + delta);
+      document.getElementById('kids-val').textContent = kids;
+    }
+    updateSadyaSummary();
+  }
+
+  function updateSadyaSummary() {
+    const aAmt = adults * ADULT_PRICE;
+    const kAmt = kids   * KID_PRICE;
+    const total = aAmt + kAmt;
+    document.getElementById('adults-label').textContent = 'Adults × ' + adults;
+    document.getElementById('adults-amt').textContent   = '₹' + aAmt.toLocaleString('en-IN');
+    document.getElementById('kids-label').textContent   = 'Kids × ' + kids;
+    document.getElementById('kids-amt').textContent     = '₹' + kAmt.toLocaleString('en-IN');
+    document.getElementById('sadya-total').textContent  = '₹' + total.toLocaleString('en-IN');
+    // hide kids row if 0
+    document.getElementById('kids-row').style.display  = kids > 0 ? '' : 'none';
+  }
+
+  /* ── MIN CONTRIBUTION ENFORCE (Onam) ── */
+  function enforceMin() {
+    const el = document.getElementById('o-fonam');
+    if ((parseInt(el.value) || 0) < MIN_ONAM) el.value = MIN_ONAM;
+    document.getElementById('onam-display-amount').textContent =
+      '₹' + parseInt(el.value).toLocaleString('en-IN');
+  }
+
+  /* ── STEP INDICATOR ── */
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el  = document.getElementById('s' + i);
+      const dot = el.querySelector('.step-dot');
+      el.classList.remove('active','done');
+      if (i < n) { el.classList.add('done'); dot.textContent = '✓'; }
+      else        { dot.textContent = i; }
+      if (i === n) el.classList.add('active');
+    });
+  }
+
+  function showErr(id, doShow) {
+    const el = document.getElementById('err-' + id);
+    if (el) el.style.display = doShow ? 'block' : 'none';
+  }
+  function v(id) { return document.getElementById(id).value.trim(); }
+
+  /* ── SADYA: Step 1 → 2 ── */
+  function goToPaymentSadya() {
+    const name  = v('s-fname');
+    const phone = v('s-fphone');
+    const flat  = v('s-fflat');
+    const email = v('s-femail');
+    const nameOk  = !!name;
+    const phoneOk = /^\d{10}$/.test(phone);
+    const flatOk  = !!flat;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const adultsOk = adults >= 1;
+
+    showErr('s-fname',  !nameOk);
+    showErr('s-fphone', !phoneOk);
+    showErr('s-fflat',  !flatOk);
+    showErr('s-femail', !emailOk);
+    showErr('adults',   !adultsOk);
+    if (!nameOk || !phoneOk || !flatOk || !emailOk || !adultsOk) return;
+
+    const total = adults * ADULT_PRICE + kids * KID_PRICE;
+    current = { event: 'sadya', name, phone, flat, email, adults, kids, total };
+    buildPayScreen(name, flat, total, 'Onam Sadya · 26 Aug 2026 · PTMS');
+  }
+
+  /* ── ONAM: Step 1 → 2 ── */
+  function goToPaymentOnam() {
+    const name  = v('o-fname');
+    const phone = v('o-fphone');
+    const flat  = v('o-fflat');
+    const email = v('o-femail');
+    const onam  = parseInt(document.getElementById('o-fonam').value) || 0;
+    const nameOk  = !!name;
+    const phoneOk = /^\d{10}$/.test(phone);
+    const flatOk  = !!flat;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const onamOk  = onam >= MIN_ONAM;
+
+    showErr('o-fname',  !nameOk);
+    showErr('o-fphone', !phoneOk);
+    showErr('o-fflat',  !flatOk);
+    showErr('o-femail', !emailOk);
+    showErr('o-fonam',  !onamOk);
+    if (!nameOk || !phoneOk || !flatOk || !emailOk || !onamOk) return;
+
+    current = { event: 'onam', name, phone, flat, email, onam, total: onam };
+    buildPayScreen(name, flat, onam, 'Nammude Onam 2026 · PTMS');
+  }
+
+  function buildPayScreen(name, flat, total, subtitle) {
+    document.getElementById('payFor').textContent     = name + ' · Flat ' + flat;
+    document.getElementById('pay-amount').textContent = '₹' + total.toLocaleString('en-IN');
+    document.getElementById('qrcode').innerHTML = '';
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=PTMS+Onam+2026&am=${total}&cu=INR&tn=${encodeURIComponent(flat)}`;
+    if (typeof QRCode !== 'undefined') {
+      new QRCode(document.getElementById('qrcode'), {
+        text: upiUrl, width: 180, height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    show(selectedEvent === 'sadya' ? 'formSadya' : 'formOnam', false);
+    show('paySection', true);
+    setStep(2);
+  }
+
+  function goBackToForm() {
+    show('paySection', false);
+    show(selectedEvent === 'sadya' ? 'formSadya' : 'formOnam', true);
+    setStep(1);
+  }
+
+  /* ── STEP 2 → 3 ── */
+  function confirmPayment() {
+    regCount++;
+    localStorage.setItem('ptms2026n', regCount);
+    const prefix = current.event === 'sadya' ? 'SDY2026' : 'ONA2026';
+    const refId  = prefix + '-' + String(regCount).padStart(4, '0');
+    const ts     = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+    current = { ...current, refId, ts };
+
+    // Build receipt rows
+    let rows = '';
+    const row = (k, v) => `<div class="rrow"><span class="rkey">${k}</span><span class="rval">${v}</span></div>`;
+    rows += row('Name',           current.name);
+    rows += row('Phone',          current.phone);
+    rows += row('Flat / Door no', current.flat);
+    rows += row('Email',          current.email);
+    if (current.event === 'sadya') {
+      rows += row('Event',   'Onam Sadya');
+      rows += row('Date',    '26 August 2026');
+      rows += row('Adults',  current.adults);
+      if (current.kids > 0) rows += row('Kids', current.kids);
+    } else {
+      rows += row('Event', 'Nammude Onam 2026');
+      rows += row('Dates', 'Oct 25 &amp; Oct 31, 2026');
+    }
+    rows += row('Amount paid', '₹' + current.total.toLocaleString('en-IN'));
+    rows += row('Payment',     '<span class="badge-paid">Paid ✓</span>');
+    rows += row('Registered on', ts);
+
+    document.getElementById('receipt-rows').innerHTML   = rows;
+    document.getElementById('receiptId').textContent    = refId;
+    document.getElementById('r-event-name').textContent =
+      (current.event === 'sadya' ? 'Onam Sadya · 26 Aug 2026' : 'Nammude Onam 2026') +
+      ' · Prestige Tranquility Malayali Samajam';
+
+    show('paySection',     false);
+    show('receiptSection', true);
+    setStep(3);
+    saveToDrive(current, refId, ts);
+  }
+
+  /* ── GOOGLE DRIVE SAVE ── */
+  async function saveToDrive(data, refId, ts) {
+    const el = document.getElementById('driveStatus');
+    let details = '';
+    if (data.event === 'sadya') {
+      details = `Event: Onam Sadya\nDate: 26 August 2026\nAdults: ${data.adults}\nKids: ${data.kids}`;
+    } else {
+      details = `Event: Nammude Onam 2026\nDates: Oct 25 & Oct 31, 2026`;
+    }
+    const prompt = `Save this registration to Google Drive for ${DRIVE_EMAIL}.
+Find or create a Google Sheet named "${SHEET_NAME}".
+If it doesn't exist, create it and add headers:
+Ref ID | Name | Phone | Flat/Door No | Email | Event | Details | Amount | Payment Status | Registered On
+
+Append this row:
+Ref ID: ${refId}
+Name: ${data.name}
+Phone: ${data.phone}
+Flat/Door No: ${data.flat}
+Email: ${data.email}
+${details}
+Amount: ₹${data.total.toLocaleString('en-IN')}
+Payment Status: Paid
+Registered On: ${ts}
+Reply with "Done" when saved.`;
+
+    try {
+      const res  = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6', max_tokens: 512,
+          messages: [{ role: 'user', content: prompt }],
+          mcp_servers: [{ type: 'url', url: 'https://drivemcp.googleapis.com/mcp/v1', name: 'gdrive' }]
+        })
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      el.className = 'drive-status saved';
+      el.innerHTML = '✅ <span>Saved to Google Drive · ' + SHEET_NAME + '</span>';
+    } catch (e) {
+      el.className = 'drive-status failed';
+      el.innerHTML = '⚠️ <span>Drive save failed. Note manually: ' +
+        [refId, data.name, data.flat, data.phone].join(' | ') + '</span>';
+    }
+  }
+
+  /* ── PRINT RECEIPT ── */
+  function printReceipt() {
+    const d = current;
+    const w = window.open('', '_blank');
+    const eventLabel = d.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026';
+    const dateLabel  = d.event === 'sadya' ? '26 August 2026' : 'Oct 25 & Oct 31, 2026';
+    let extraRows = '';
+    if (d.event === 'sadya') {
+      extraRows = `<tr><td>Adults</td><td>${d.adults}</td></tr>
+                   ${d.kids > 0 ? `<tr><td>Kids</td><td>${d.kids}</td></tr>` : ''}`;
+    }
+    w.document.write(`<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><title>Receipt · ${d.refId}</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;max-width:460px;margin:28px auto;padding:30px;border:2px solid #c8a84b;border-radius:14px;}
+.hdr{text-align:center;border-bottom:1px solid #e8d89a;padding-bottom:18px;margin-bottom:18px;}
+.org{font-family:'Playfair Display',serif;font-size:10px;letter-spacing:2.5px;color:#8b6914;text-transform:uppercase;margin-bottom:4px;}
+.ttl{font-family:'Dancing Script',cursive;font-size:42px;color:#c8920a;line-height:1.1;margin:6px 0 2px;}
+.ref{font-size:11px;color:#a08030;margin-top:6px;letter-spacing:1px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+td{padding:9px 4px;border-bottom:1px solid #f0e8c8;font-size:13px;}
+td:first-child{color:#a08030;width:44%;}
+td:last-child{font-weight:500;color:#5c4010;}
+.paid{background:#d1fae5;color:#065f46;padding:2px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+.ftr{text-align:center;margin-top:20px;font-size:12px;color:#a08030;font-family:'Playfair Display',serif;line-height:2;}
+.ftr small{font-family:'Inter',sans-serif;font-size:10px;color:#b8963a;display:block;}
+@media print{body{border:none;}}
+</style></head><body>
+<div class="hdr">
+  <div class="org">Prestige Tranquility Malayali Samajam</div>
+  <div class="ttl">${eventLabel}</div>
+  <div class="ref">${d.refId}</div>
+</div>
+<table>
+  <tr><td>Name</td><td>${d.name}</td></tr>
+  <tr><td>Phone</td><td>${d.phone}</td></tr>
+  <tr><td>Flat / Door No</td><td>${d.flat}</td></tr>
+  <tr><td>Email</td><td>${d.email}</td></tr>
+  <tr><td>Event</td><td>${eventLabel}</td></tr>
+  <tr><td>Date</td><td>${dateLabel}</td></tr>
+  ${extraRows}
+  <tr><td>Amount Paid</td><td>₹${d.total.toLocaleString('en-IN')}</td></tr>
+  <tr><td>Payment Status</td><td><span class="paid">Paid ✓</span></td></tr>
+  <tr><td>Registered On</td><td>${d.ts}</td></tr>
+</table>
+<div class="ftr">
+  🌸 Thiruvonam Ashamsakal! 🌸
+  <small>tranquilitymalayalisamajam@gmail.com</small>
+</div>
+<script>window.onload=function(){window.print();};<\/script>
+</body></html>`);
+    w.document.close();
+  }
+
+  /* ── NEW REGISTRATION ── */
+  function newRegistration() {
+    ['s-fname','s-fphone','s-fflat','s-femail',
+     'o-fname','o-fphone','o-fflat','o-femail'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('o-fonam').value = MIN_ONAM;
+    document.getElementById('onam-display-amount').textContent = '₹3,000';
+    adults = 1; kids = 0;
+    document.getElementById('adults-val').textContent = '1';
+    document.getElementById('kids-val').textContent   = '0';
+    updateSadyaSummary();
+    selectedEvent = null;
+    show('receiptSection', false);
+    show('stepBar',        false);
+    show('formSadya',      false);
+    show('formOnam',       false);
+    show('selectSection',  true);
+    document.getElementById('card-sadya').classList.remove('selected');
+    document.getElementById('card-onam').classList.remove('selected');
+    current = {};
+  }
+
+  function show(id, visible) {
+    document.getElementById(id).classList.toggle('hidden', !visible);
+  }
+
+  // Init
+  updateSadyaSummary();
+</script>
+</body>
+</html>
