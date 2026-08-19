@@ -968,9 +968,16 @@ _tranquilitymalayalisamajam@gmail.com_`;
       ? `<tr><td>Adults</td><td>${d.adults}</td></tr>${d.kids > 0 ? `<tr><td>Kids</td><td>${d.kids}</td></tr>` : ''}`
       : '';
     const w = window.open('','_blank');
+    // Build QR data for print
+    var printQrData = JSON.stringify({
+      refId: d.refId, name: d.name, flat: d.flat,
+      phone: d.phone, event: eventLabel, amount: '₹' + d.total.toLocaleString('en-IN'), status: 'Paid'
+    });
+    var printQrUrl = 'https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + encodeURIComponent(printQrData) + '&chld=M|2';
+
     w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt · ${d.refId}</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Inter',sans-serif;max-width:460px;margin:28px auto;padding:30px;border:2px solid #c8a84b;border-radius:14px;}.hdr{text-align:center;border-bottom:1px solid #e8d89a;padding-bottom:18px;margin-bottom:18px;}.org{font-family:'Playfair Display',serif;font-size:10px;letter-spacing:2.5px;color:#8b6914;text-transform:uppercase;margin-bottom:4px;}.ttl{font-family:'Dancing Script',cursive;font-size:42px;color:#c8920a;line-height:1.1;margin:6px 0 2px;}.ref{font-size:11px;color:#a08030;margin-top:6px;letter-spacing:1px;font-weight:600;}table{width:100%;border-collapse:collapse;}td{padding:9px 4px;border-bottom:1px solid #f0e8c8;font-size:13px;}td:first-child{color:#a08030;width:44%;}td:last-child{font-weight:500;color:#5c4010;}.paid{background:#d1fae5;color:#065f46;padding:2px 12px;border-radius:20px;font-size:11px;font-weight:600;}.ftr{text-align:center;margin-top:20px;font-size:12px;color:#a08030;font-family:'Playfair Display',serif;line-height:2;}.ftr small{font-family:'Inter',sans-serif;font-size:10px;color:#b8963a;display:block;}@media print{body{border:none;}}</style></head><body>
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Inter',sans-serif;max-width:460px;margin:28px auto;padding:30px;border:2px solid #c8a84b;border-radius:14px;}.hdr{text-align:center;border-bottom:1px solid #e8d89a;padding-bottom:18px;margin-bottom:18px;}.org{font-family:'Playfair Display',serif;font-size:10px;letter-spacing:2.5px;color:#8b6914;text-transform:uppercase;margin-bottom:4px;}.ttl{font-family:'Dancing Script',cursive;font-size:42px;color:#c8920a;line-height:1.1;margin:6px 0 2px;}.ref{font-size:11px;color:#a08030;margin-top:6px;letter-spacing:1px;font-weight:600;}table{width:100%;border-collapse:collapse;}td{padding:9px 4px;border-bottom:1px solid #f0e8c8;font-size:13px;}td:first-child{color:#a08030;width:44%;}td:last-child{font-weight:500;color:#5c4010;}.paid{background:#d1fae5;color:#065f46;padding:2px 12px;border-radius:20px;font-size:11px;font-weight:600;}.qr-section{text-align:center;margin:20px 0;padding:16px;background:#fff8e8;border:1px solid #e8d89a;border-radius:10px;}.qr-section p{color:#8b6914;font-size:12px;margin-bottom:10px;}.qr-section small{color:#b8963a;font-size:10px;display:block;margin-top:6px;}.ftr{text-align:center;margin-top:20px;font-size:12px;color:#a08030;font-family:'Playfair Display',serif;line-height:2;}.ftr small{font-family:'Inter',sans-serif;font-size:10px;color:#b8963a;display:block;}@media print{body{border:none;}}</style></head><body>
 <div class="hdr"><div class="org">Prestige Tranquility Malayali Samajam</div><div class="ttl">${eventLabel}</div><div class="ref">${d.refId}</div></div>
 <table>
 <tr><td>Name</td><td>${d.name}</td></tr>
@@ -981,9 +988,15 @@ _tranquilitymalayalisamajam@gmail.com_`;
 <tr><td>Date</td><td>${dateLabel}</td></tr>
 ${extraRows}
 <tr><td>Amount Paid</td><td>₹${d.total.toLocaleString('en-IN')}</td></tr>
+<tr><td>UPI Txn ID</td><td>${d.txnId || '-'}</td></tr>
 <tr><td>Payment Status</td><td><span class="paid">Paid ✓</span></td></tr>
 <tr><td>Registered On</td><td>${d.ts}</td></tr>
 </table>
+<div class="qr-section">
+  <p>📲 Show this QR code at the entry gate</p>
+  <img src="${printQrUrl}" alt="Entry QR Code" style="width:180px;height:180px;border-radius:8px;"/>
+  <small>${d.refId}</small>
+</div>
 <div class="ftr">🌸 Thiruvonam Ashamsakal! 🌸<small>tranquilitymalayalisamajam@gmail.com</small></div>
 <script>window.onload=function(){window.print();};<\/script></body></html>`);
     w.document.close();
