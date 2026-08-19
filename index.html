@@ -867,8 +867,9 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
     show('paySection', false); show('receiptSection', true); setStep(3);
 
-    // Generate receipt QR
+    // Generate receipt QR — small delay to ensure DOM is ready
     document.getElementById('receiptQR').innerHTML = '';
+    document.getElementById('receiptQRRef').textContent = refId;
     const qrData = JSON.stringify({
       refId,
       name:  current.name,
@@ -878,13 +879,14 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       amount: '₹' + current.total.toLocaleString('en-IN'),
       status: 'Paid'
     });
-    if (typeof QRCode !== 'undefined') {
-      new QRCode(document.getElementById('receiptQR'), {
-        text: qrData, width: 180, height: 180,
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    }
-    document.getElementById('receiptQRRef').textContent = refId;
+    setTimeout(() => {
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(document.getElementById('receiptQR'), {
+          text: qrData, width: 180, height: 180,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 300);
 
     saveToDrive(current, refId, ts);
   }
