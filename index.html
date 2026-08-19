@@ -246,12 +246,12 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
       <!-- Method toggle -->
       <div class="method-toggle">
-        <button class="method-btn active" id="btn-email-method" onclick="switchMethod('email')">✉️ Email link</button>
-        <button class="method-btn" id="btn-phone-method" onclick="switchMethod('phone')">📱 SMS OTP</button>
+        <button class="method-btn" id="btn-email-method" onclick="switchMethod('email')">✉️ Email link</button>
+        <button class="method-btn active" id="btn-phone-method" onclick="switchMethod('phone')">📱 SMS OTP</button>
       </div>
 
       <!-- EMAIL flow -->
-      <div id="emailFlow">
+      <div id="emailFlow" class="hidden">
         <div id="emailStep">
           <div class="login-input-wrap">
             <input type="email" id="loginEmail" placeholder="priya@gmail.com" autocomplete="email">
@@ -266,7 +266,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       </div>
 
       <!-- PHONE flow -->
-      <div id="phoneFlow" class="hidden">
+      <div id="phoneFlow">
         <div id="phoneStep">
           <div class="login-input-wrap">
             <input type="tel" id="loginPhone" placeholder="9876543210" maxlength="10" autocomplete="tel">
@@ -453,7 +453,21 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         <li><span class="step-num">5</span><span>Return here and click the button below</span></li>
       </ul>
     </div>
-    <button class="btn-primary" onclick="confirmPayment()">✓ &nbsp;I've completed payment</button>
+    <div class="section-card" style="margin-top:0.5rem;">
+      <div class="section-card-title">
+        <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/></svg>
+        Enter UPI Transaction ID
+      </div>
+      <div class="field">
+        <label class="field-label" for="txnId">Transaction ID <span class="req">*</span></label>
+        <input type="text" id="txnId" placeholder="e.g. 426813993784"
+               style="letter-spacing:1px;text-transform:uppercase;"
+               oninput="this.value=this.value.toUpperCase()">
+        <div class="field-hint">Find this in your UPI app under payment history</div>
+        <div class="error-msg" id="err-txnId">Please enter the UPI Transaction ID</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="confirmPayment()">✓ &nbsp;Confirm & Get Receipt</button>
     <button class="btn-secondary" onclick="goBackToForm()">← Back to details</button>
   </div>
 
@@ -467,11 +481,25 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         <div class="receipt-refid" id="receiptId"></div>
       </div>
       <div id="receipt-rows"></div>
+
+      <!-- QR CODE on receipt -->
+      <div style="text-align:center;margin:1rem 0 0.5rem;">
+        <div style="font-size:12px;color:#a08030;margin-bottom:8px;font-family:'Playfair Display',serif;">
+          📲 Show this QR at the entry gate
+        </div>
+        <div id="receiptQR" style="display:inline-block;background:#fff;padding:10px;border-radius:10px;border:1px solid #e8d89a;"></div>
+        <div style="font-size:11px;color:#b8963a;margin-top:6px;" id="receiptQRRef"></div>
+      </div>
+
       <div class="divider" style="margin-top:12px;">🌸 Thiruvonam Ashamsakal 🌸</div>
     </div>
     <div class="drive-status" id="driveStatus">
       <div class="spinner"></div><span>Saving registration…</span>
     </div>
+    <button class="btn-ghost" id="whatsappBtn" onclick="shareWhatsApp()" style="background:#25D366;border-color:#25D366;color:#fff;margin-bottom:2px;">
+      <svg viewBox="0 0 24 24" style="stroke:#fff;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Share receipt on WhatsApp
+    </button>
     <button class="btn-ghost" onclick="printReceipt()">
       <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Print / save receipt as PDF
@@ -671,6 +699,9 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   function show(id, visible) {
     document.getElementById(id).classList.toggle('hidden', !visible);
   }
+
+  // Default to phone OTP — init recaptcha on load
+  initRecaptcha();
 </script>
 
 <script>
@@ -784,12 +815,19 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
   /* ── CONFIRM PAYMENT → RECEIPT ── */
   function confirmPayment() {
+    const txnId = document.getElementById('txnId').value.trim();
+    if (!txnId) {
+      showErr('txnId', true);
+      document.getElementById('txnId').focus();
+      return;
+    }
+    showErr('txnId', false);
     regCount++;
     localStorage.setItem('ptms2026n', regCount);
     const prefix = current.event === 'sadya' ? 'SDY2026' : 'ONA2026';
     const refId  = prefix + '-' + String(regCount).padStart(4,'0');
     const ts     = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
-    current = { ...current, refId, ts };
+    current = { ...current, refId, ts, txnId };
 
     let rows = '';
     const row = (k, val) => `<div class="rrow"><span class="rkey">${k}</span><span class="rval">${val}</span></div>`;
@@ -807,6 +845,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       rows += row('Dates', 'Oct 25 &amp; Oct 31, 2026');
     }
     rows += row('Amount paid', '₹' + current.total.toLocaleString('en-IN'));
+    rows += row('UPI Txn ID', current.txnId);
     rows += row('Payment', '<span class="badge-paid">Paid ✓</span>');
     rows += row('Registered on', ts);
 
@@ -817,6 +856,26 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       ' · Prestige Tranquility Malayali Samajam';
 
     show('paySection', false); show('receiptSection', true); setStep(3);
+
+    // Generate receipt QR
+    document.getElementById('receiptQR').innerHTML = '';
+    const qrData = JSON.stringify({
+      refId,
+      name:  current.name,
+      flat:  current.flat,
+      phone: current.phone,
+      event: current.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026',
+      amount: '₹' + current.total.toLocaleString('en-IN'),
+      status: 'Paid'
+    });
+    if (typeof QRCode !== 'undefined') {
+      new QRCode(document.getElementById('receiptQR'), {
+        text: qrData, width: 180, height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    document.getElementById('receiptQRRef').textContent = refId;
+
     saveToDrive(current, refId, ts);
   }
 
@@ -835,6 +894,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       event:   data.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026',
       details,
       amount:  '\u20b9' + data.total.toLocaleString('en-IN'),
+      txnId:   data.txnId,
       status:  'Paid',
       ts
     };
@@ -852,6 +912,34 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       el.className = 'drive-status failed';
       el.innerHTML = '\u26a0\ufe0f <span>Save failed. Note manually: ' + [refId, data.name, data.flat, data.phone].join(' | ') + '</span>';
     }
+  }
+
+  /* ── SHARE ON WHATSAPP ── */
+  function shareWhatsApp() {
+    const d = current;
+    const eventLabel = d.event === 'sadya' ? 'Onam Sadya (26 Aug 2026)' : 'Nammude Onam 2026 (Oct 25 & Oct 31)';
+    let details = '';
+    if (d.event === 'sadya') {
+      details = `Adults: ${d.adults}, Kids: ${d.kids}`;
+    }
+    const msg =
+`🌸 *PTMS Onam 2026 – Registration Confirmed!* 🌸
+
+*Ref ID:* ${d.refId}
+*Name:* ${d.name}
+*Flat:* ${d.flat}
+*Phone:* ${d.phone}
+*Event:* ${eventLabel}${details ? `
+*${details}*` : ''}
+*Amount Paid:* ₹${d.total.toLocaleString('en-IN')}
+*Status:* ✅ Paid
+*Registered On:* ${d.ts}
+
+_Prestige Tranquility Malayali Samajam_
+_tranquilitymalayalisamajam@gmail.com_`;
+
+    const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
   }
 
   /* ── PRINT RECEIPT ── */
@@ -888,6 +976,8 @@ ${extraRows}
   function newRegistration() {
     ['s-fname','s-fphone','s-fflat','o-fname','o-fphone','o-fflat'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
     document.getElementById('o-fonam').value = MIN_ONAM;
+    document.getElementById('txnId').value = '';
+    showErr('txnId', false);
     document.getElementById('onam-display-amount').textContent = '₹3,000';
     adults = 1; kids = 0;
     document.getElementById('adults-val').textContent = '1';
