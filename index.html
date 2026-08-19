@@ -727,7 +727,13 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   let selectedEvent = null;
   let adults = 1, kids = 0;
   let current = {};
-  let regCount = parseInt(localStorage.getItem('ptms2026n') || '0');
+  // Use sheet-side counter — generate unique ID from timestamp + random
+  function generateRefId(event) {
+    const prefix = event === 'sadya' ? 'SDY2026' : 'ONA2026';
+    const ts  = Date.now().toString(36).toUpperCase().slice(-4);
+    const rnd = Math.random().toString(36).toUpperCase().slice(2,5);
+    return prefix + '-' + ts + rnd;
+  }
 
   function show(id, visible) {
     document.getElementById(id).classList.toggle('hidden', !visible);
@@ -832,10 +838,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       return;
     }
     showErr('txnId', false);
-    regCount++;
-    localStorage.setItem('ptms2026n', regCount);
-    const prefix = current.event === 'sadya' ? 'SDY2026' : 'ONA2026';
-    const refId  = prefix + '-' + String(regCount).padStart(4,'0');
+    const refId = generateRefId(current.event);
     const ts     = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
     current = { ...current, refId, ts, txnId };
 
@@ -887,14 +890,33 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
             text: qrData, width: 180, height: 180,
             correctLevel: QRCode.CorrectLevel.M
           });
+          console.log('QR generated successfully');
         } catch(e) {
-          if (attempt < 5) setTimeout(() => generateQR(attempt + 1), 500);
+          console.error('QR error:', e);
+          if (attempt < 5) setTimeout(() => generateQR(attempt + 1), 800);
         }
       } else {
-        if (attempt < 10) setTimeout(() => generateQR(attempt + 1), 500);
+        console.log('QRCode not loaded yet, attempt:', attempt);
+        if (attempt < 15) {
+          // Try loading the script again
+          if (attempt === 5) {
+            var s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+            s.onload = () => generateQR(attempt + 1);
+            document.head.appendChild(s);
+          } else {
+            setTimeout(() => generateQR(attempt + 1), 500);
+          }
+        } else {
+          // Fallback: use Google Charts API
+          var img = document.createElement('img');
+          img.src = 'https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=' + encodeURIComponent(qrData);
+          img.style.borderRadius = '8px';
+          document.getElementById('receiptQR').appendChild(img);
+        }
       }
     }
-    setTimeout(() => generateQR(1), 500);
+    generateQR(1);
 
     saveToDrive(current, refId, ts);
   }
@@ -996,8 +1018,7 @@ ${extraRows}
   function newRegistration() {
     ['s-fname','s-fphone','s-fflat','s-femail','o-fname','o-fphone','o-fflat','o-femail'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
     document.getElementById('o-fonam').value = MIN_ONAM;
-    document.getElementById('txnId').value = '';
-    showErr('txnId', false);
+    if (document.getElementById('txnId')) { document.getElementById('txnId').value = ''; showErr('txnId', false); }
     document.getElementById('onam-display-amount').textContent = '₹3,000';
     adults = 1; kids = 0;
     document.getElementById('adults-val').textContent = '1';
