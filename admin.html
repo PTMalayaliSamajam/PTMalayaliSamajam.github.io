@@ -39,6 +39,8 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   transition: background 0.15s;
 }
 .btn-primary:hover { background: #b07d08; }
+.btn-primary:disabled { background: #d4b96a; cursor: not-allowed; }
+
 .btn-secondary {
   width: 100%; height: 44px; background: transparent; color: #8b6914;
   border: 0.5px solid #c8a84b; border-radius: 10px; font-size: 14px;
@@ -61,6 +63,7 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   font-size: 18px; margin-bottom: 3px;
 }
 .result-status.valid   { color: #065f46; }
+.result-status.partial { color: #92400e; }
 .result-status.invalid { color: #b91c1c; }
 .result-refid { font-size: 11px; color: #b8963a; letter-spacing: 0.8px; }
 
@@ -72,8 +75,76 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 .rkey { color: #a08030; flex-shrink: 0; }
 .rval { color: #5c4010; font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
 
-.badge-valid   { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
-.badge-invalid { background: #fee2e2; color: #b91c1c; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.badge-valid    { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.badge-partial  { background: #fef3c7; color: #92400e; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.badge-invalid  { background: #fee2e2; color: #b91c1c; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.badge-done     { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+
+/* Member count display */
+.member-count-box {
+  background: linear-gradient(135deg, #fffbee, #fff8e0);
+  border: 1px solid #e8d89a; border-radius: 12px;
+  padding: 1rem; margin: 0.75rem 0; text-align: center;
+}
+.member-count-label { font-size: 12px; color: #a08030; margin-bottom: 6px; }
+.member-count-numbers {
+  display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 6px;
+}
+.mc-item { text-align: center; }
+.mc-num { font-size: 28px; font-weight: 700; color: #c8920a; line-height: 1; }
+.mc-sub { font-size: 11px; color: #a08030; margin-top: 2px; }
+.member-count-total {
+  font-size: 13px; color: #5c4010; font-weight: 600;
+  border-top: 0.5px solid #e8d89a; padding-top: 8px; margin-top: 6px;
+}
+
+/* Already checked-in banner */
+.checkin-progress {
+  background: #fef3c7; border: 1px solid #f59e0b;
+  border-radius: 10px; padding: 10px 14px;
+  margin: 0.75rem 0; font-size: 13px; color: #92400e;
+  display: flex; align-items: center; gap: 8px;
+}
+.checkin-progress-icon { font-size: 18px; flex-shrink: 0; }
+
+/* Check-in section */
+.checkin-section {
+  border-top: 0.5px solid #e8d89a;
+  padding-top: 1rem; margin-top: 0.5rem;
+}
+.checkin-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px; color: #8b6914; margin-bottom: 0.75rem; text-align: center;
+}
+.checkin-input-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem;
+}
+.checkin-input-row label { font-size: 13px; color: #a08030; flex-shrink: 0; }
+.qty-row {
+  display: flex; align-items: center; gap: 0; background: #fff;
+  border: 1px solid #ddd0a0; border-radius: 10px; overflow: hidden; flex: 1;
+}
+.qty-btn {
+  width: 40px; height: 40px; background: #fdf6e3;
+  border: none; font-size: 20px; color: #c8920a;
+  cursor: pointer; font-weight: 600; flex-shrink: 0;
+}
+.qty-btn:active { background: #f5e9c0; }
+.qty-val {
+  flex: 1; text-align: center; font-size: 18px;
+  font-weight: 700; color: #3d2a00; font-family: 'Inter', sans-serif;
+}
+.checkin-hint { font-size: 11px; color: #a08030; text-align: center; margin-bottom: 0.5rem; }
+
+/* All checked in state */
+.all-done-box {
+  background: #d1fae5; border: 1px solid #6ee7b7;
+  border-radius: 12px; padding: 1rem;
+  text-align: center; margin: 0.75rem 0;
+}
+.all-done-icon { font-size: 32px; margin-bottom: 6px; }
+.all-done-text { font-size: 14px; color: #065f46; font-weight: 600; }
+.all-done-sub  { font-size: 12px; color: #059669; margin-top: 3px; }
 
 .manual-input {
   width: 100%; height: 48px; border: 0.5px solid #ddd0a0; border-radius: 10px;
@@ -84,13 +155,80 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 .manual-input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(200,146,10,0.13); }
 
 .divider { text-align: center; font-size: 12px; color: #c8b070; margin: 10px 0; }
-
 .hidden { display: none !important; }
 
+.loading-row {
+  text-align: center; padding: 1rem;
+  font-size: 13px; color: #a08030;
+}
+
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: #065f46; color: #fff; padding: 10px 20px;
+  border-radius: 20px; font-size: 13px; font-weight: 500;
+  z-index: 999; opacity: 0; transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
 .page-footer { text-align: center; margin-top: 2rem; font-size: 11px; color: #b8963a; font-family: 'Playfair Display', serif; line-height: 2; }
+
+/* ── PASSWORD GATE ── */
+#lockScreen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #fdf9f0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+}
+.lock-card {
+  background: #fffdf8; border: 0.5px solid #e8d89a;
+  border-radius: 18px; padding: 2rem 1.5rem;
+  width: 100%; max-width: 380px; text-align: center;
+}
+.lock-icon { font-size: 44px; margin-bottom: 0.75rem; }
+.lock-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: #3d2a00; margin-bottom: 4px;
+}
+.lock-sub { font-size: 12px; color: #a08030; margin-bottom: 1.5rem; }
+.lock-input {
+  width: 100%; height: 50px;
+  border: 1px solid #ddd0a0; border-radius: 12px;
+  padding: 0 16px; font-size: 16px; color: #3d2a00;
+  background: #fff; font-family: 'Inter', sans-serif;
+  margin-bottom: 0.75rem; letter-spacing: 1px;
+}
+.lock-input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(200,146,10,0.13); }
+.lock-btn {
+  width: 100%; height: 50px; background: #c8920a; color: #fffdf0;
+  border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: background 0.15s;
+}
+.lock-btn:hover { background: #b07d08; }
+.lock-error {
+  font-size: 13px; color: #b91c1c;
+  margin-top: 0.75rem; min-height: 20px;
+}
+.lock-footer { font-size: 11px; color: #c8b070; margin-top: 1.5rem; font-family: 'Playfair Display', serif; }
 </style>
 </head>
 <body>
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">PTMS Admin Access</div>
+    <div class="lock-sub">Entry scanner · Authorised personnel only</div>
+    <input class="lock-input" id="lockPassword" type="password"
+           placeholder="Enter password" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') unlock()">
+    <button class="lock-btn" onclick="unlock()">Unlock →</button>
+    <div class="lock-error" id="lockError"></div>
+    <div class="lock-footer">🌸 Prestige Tranquility Malayali Samajam 🌸</div>
+  </div>
+</div>
+
 <div class="app">
 
   <div class="header">
@@ -119,14 +257,67 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   <!-- RESULT -->
   <div id="resultSection" class="hidden">
     <div class="result-card">
+
+      <!-- Header: icon + status -->
       <div class="result-header">
         <div class="result-icon" id="resultIcon">✅</div>
         <div class="result-status valid" id="resultStatus">Valid Registration</div>
         <div class="result-refid" id="resultRefId"></div>
       </div>
+
+      <!-- Basic info rows -->
       <div id="result-rows"></div>
+
+      <!-- Member count box -->
+      <div class="member-count-box" id="memberCountBox" style="display:none;">
+        <div class="member-count-label">Registered Members</div>
+        <div class="member-count-numbers">
+          <div class="mc-item">
+            <div class="mc-num" id="mc-adults">0</div>
+            <div class="mc-sub">Adults</div>
+          </div>
+          <div class="mc-item">
+            <div class="mc-num" id="mc-kids">0</div>
+            <div class="mc-sub">Kids</div>
+          </div>
+        </div>
+        <div class="member-count-total" id="mc-total">Total: 0 members</div>
+      </div>
+
+      <!-- Already checked-in progress (shown on repeat scans) -->
+      <div class="checkin-progress" id="checkinProgress" style="display:none;">
+        <span class="checkin-progress-icon">🔄</span>
+        <span id="checkinProgressText"></span>
+      </div>
+
+      <!-- All done box -->
+      <div class="all-done-box" id="allDoneBox" style="display:none;">
+        <div class="all-done-icon">🎉</div>
+        <div class="all-done-text">All members checked in!</div>
+        <div class="all-done-sub" id="allDoneSub"></div>
+      </div>
+
+      <!-- Check-in section -->
+      <div class="checkin-section" id="checkinSection" style="display:none;">
+        <div class="checkin-title">How many members are checking in now?</div>
+        <div class="checkin-input-row">
+          <label>Members:</label>
+          <div class="qty-row">
+            <button class="qty-btn" onclick="changeCheckin(-1)">−</button>
+            <span class="qty-val" id="checkinQty">1</span>
+            <button class="qty-btn" onclick="changeCheckin(+1)">+</button>
+          </div>
+        </div>
+        <div class="checkin-hint" id="checkinHint"></div>
+        <button class="btn-primary" id="checkinBtn" onclick="doCheckin()">✅ Check In</button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-row hidden" id="loadingRow">⏳ Saving check-in…</div>
+
     </div>
-    <button class="btn-primary" onclick="scanAnother()">← Scan another</button>
+
+    <button class="btn-secondary" onclick="scanAnother()">← Scan another</button>
   </div>
 
   <div class="page-footer">
@@ -134,10 +325,42 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxS7dQkn0uqncgP5Mdggr5Fu5kdMR8CTN5idZKF44V6Suplwe8-et-OpiSeBhgpmaPs6w/exec';
-  let html5QrCode = null;
 
+  /* ── PASSWORD GATE ── */
+  const ADMIN_PASS = 'OnamNammude@2026';
+  const SESSION_KEY = 'ptms_admin_unlocked';
+
+  // Check if already unlocked this session
+  (function() {
+    if (sessionStorage.getItem(SESSION_KEY) === 'yes') {
+      document.getElementById('lockScreen').style.display = 'none';
+    }
+  })();
+
+  function unlock() {
+    const val = document.getElementById('lockPassword').value;
+    const err = document.getElementById('lockError');
+    if (val === ADMIN_PASS) {
+      sessionStorage.setItem(SESSION_KEY, 'yes');
+      document.getElementById('lockScreen').style.display = 'none';
+      err.textContent = '';
+    } else {
+      err.textContent = '❌ Incorrect password. Please try again.';
+      document.getElementById('lockPassword').value = '';
+      document.getElementById('lockPassword').focus();
+    }
+  }
+
+  let html5QrCode = null;
+  let currentData = null;   // parsed QR / sheet data
+  let checkinCount = 1;     // qty spinner value
+  let maxCheckin   = 1;     // max allowed (remaining)
+
+  /* ── SCANNER ── */
   function startScanner() {
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('stopBtn').style.display  = 'block';
@@ -145,10 +368,7 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
     html5QrCode.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 250, height: 250 } },
-      (decodedText) => {
-        stopScanner();
-        processQR(decodedText);
-      },
+      (decodedText) => { stopScanner(); processQR(decodedText); },
       () => {}
     ).catch(err => {
       alert('Camera error: ' + err);
@@ -166,82 +386,210 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
     }
   }
 
+  /* ── PROCESS QR ── */
   function processQR(text) {
     try {
       const data = JSON.parse(text);
-      showResult(data, true);
+      if (data.refId) {
+        // Fetch latest check-in state from sheet, merge with QR data
+        fetchCheckinState(data);
+      } else {
+        showInvalid('QR does not contain a valid Ref ID');
+      }
     } catch {
-      // Not JSON — show invalid
-      showResult({ refId: text }, false);
+      showInvalid('Could not read QR code');
     }
   }
 
   function lookupManual() {
     const ref = document.getElementById('manualRef').value.trim().toUpperCase();
     if (!ref) { alert('Please enter a Ref ID'); return; }
-    // For manual lookup, fetch from sheet
-    fetchFromSheet(ref);
+    fetchCheckinState({ refId: ref });
   }
 
-  async function fetchFromSheet(refId) {
+  /* ── FETCH FROM SHEET (get current check-in state) ── */
+  async function fetchCheckinState(qrData) {
+    showResultSection();
+    document.getElementById('loadingRow').classList.remove('hidden');
+    document.getElementById('checkinSection').style.display = 'none';
+    document.getElementById('memberCountBox').style.display = 'none';
+    document.getElementById('checkinProgress').style.display = 'none';
+    document.getElementById('allDoneBox').style.display = 'none';
+    document.getElementById('result-rows').innerHTML = '<div class="loading-row">⏳ Loading registration…</div>';
+
     try {
-      const res  = await fetch(SHEET_URL + '?refId=' + encodeURIComponent(refId));
+      const res  = await fetch(SHEET_URL + '?action=lookup&refId=' + encodeURIComponent(qrData.refId));
       const json = await res.json();
+
       if (json.success && json.data) {
-        showResult(json.data, true);
+        // Merge sheet data (authoritative) with QR data (has adults/kids if new QR)
+        const merged = { ...qrData, ...json.data };
+        // QR has adults/kids if it's a new-format QR — prefer QR for these if sheet doesn't have them
+        if (!merged.adults && qrData.adults) merged.adults = qrData.adults;
+        if (!merged.kids   && qrData.kids)   merged.kids   = qrData.kids;
+        if (!merged.total  && qrData.total)   merged.total  = qrData.total;
+        currentData = merged;
+        showResult(merged);
       } else {
-        showResult({ refId }, false);
+        // Sheet lookup failed — use QR data only (no check-in tracking possible)
+        currentData = { ...qrData, checkedIn: 0 };
+        showResult(currentData);
       }
     } catch {
-      // Sheet lookup failed — show what we have
-      showResult({ refId, note: 'Could not verify against sheet' }, null);
+      currentData = { ...qrData, checkedIn: 0 };
+      showResult(currentData);
     }
+
+    document.getElementById('loadingRow').classList.add('hidden');
   }
 
-  function showResult(data, valid) {
-    document.getElementById('scannerSection').classList.add('hidden');
-    document.getElementById('resultSection').classList.remove('hidden');
-
+  /* ── SHOW RESULT ── */
+  function showResult(data) {
     const icon   = document.getElementById('resultIcon');
     const status = document.getElementById('resultStatus');
     const refEl  = document.getElementById('resultRefId');
 
-    if (valid === true) {
-      icon.textContent   = '✅';
-      status.textContent = 'Valid Registration';
-      status.className   = 'result-status valid';
-    } else if (valid === false) {
-      icon.textContent   = '❌';
-      status.textContent = 'Invalid QR Code';
-      status.className   = 'result-status invalid';
-    } else {
-      icon.textContent   = '⚠️';
-      status.textContent = 'Could not verify';
-      status.className   = 'result-status';
-    }
-
     refEl.textContent = data.refId || '';
 
-    const row = (k, v) => v ? `<div class="rrow"><span class="rkey">${k}</span><span class="rval">${v}</span></div>` : '';
+    // Basic info rows
+    const row = (k, v) => v !== undefined && v !== '' && v !== null
+      ? `<div class="rrow"><span class="rkey">${k}</span><span class="rval">${v}</span></div>` : '';
     let rows = '';
     rows += row('Name',   data.name);
     rows += row('Flat',   data.flat);
-    rows += row('Phone',  data.phone);
     rows += row('Event',  data.event);
     rows += row('Amount', data.amount);
-    if (data.note) rows += row('Note', data.note);
-    rows += `<div class="rrow"><span class="rkey">Status</span><span class="rval">
-      ${valid === true ? '<span class="badge-valid">✅ Paid</span>' : valid === false ? '<span class="badge-invalid">❌ Invalid</span>' : '<span>⚠️ Unverified</span>'}
+    if (data.txnId) rows += row('TXN ID', data.txnId);
+    rows += `<div class="rrow"><span class="rkey">Payment</span><span class="rval">
+      <span class="badge-valid">✅ Paid</span>
     </span></div>`;
-
     document.getElementById('result-rows').innerHTML = rows;
+
+    // Member counts
+    const adults   = parseInt(data.adults) || 0;
+    const kids     = parseInt(data.kids)   || 0;
+    const total    = adults + kids || parseInt(data.total) || 0;
+    const checkedIn = parseInt(data.checkedIn) || 0;
+    const remaining = Math.max(0, total - checkedIn);
+
+    if (total > 0) {
+      document.getElementById('mc-adults').textContent = adults;
+      document.getElementById('mc-kids').textContent   = kids;
+      document.getElementById('mc-total').textContent  = `Total: ${total} member${total !== 1 ? 's' : ''}`;
+      document.getElementById('memberCountBox').style.display = '';
+    }
+
+    // Check-in state
+    if (total === 0) {
+      // Old QR without count data — just show paid, allow simple checkin
+      icon.textContent   = '✅';
+      status.textContent = 'Valid Registration';
+      status.className   = 'result-status valid';
+      setupCheckin(1, 1);
+
+    } else if (checkedIn === 0) {
+      // Nobody checked in yet
+      icon.textContent   = '✅';
+      status.textContent = 'Valid Registration';
+      status.className   = 'result-status valid';
+      setupCheckin(total, total);
+
+    } else if (checkedIn >= total) {
+      // All checked in
+      icon.textContent   = '🎉';
+      status.textContent = 'All Checked In';
+      status.className   = 'result-status valid';
+      document.getElementById('allDoneBox').style.display = '';
+      document.getElementById('allDoneSub').textContent   = `${total} of ${total} members entered`;
+      document.getElementById('checkinSection').style.display = 'none';
+
+    } else {
+      // Partial — some already in
+      icon.textContent   = '⚠️';
+      status.textContent = 'Partially Checked In';
+      status.className   = 'result-status partial';
+      document.getElementById('checkinProgress').style.display = '';
+      document.getElementById('checkinProgressText').textContent =
+        `${checkedIn} of ${total} members already checked in — ${remaining} remaining`;
+      setupCheckin(remaining, remaining);
+    }
+  }
+
+  function setupCheckin(defaultVal, max) {
+    maxCheckin   = max;
+    checkinCount = Math.min(defaultVal, max);
+    document.getElementById('checkinQty').textContent = checkinCount;
+    document.getElementById('checkinHint').textContent =
+      max === 1 ? '1 member remaining' : `Max ${max} members can check in now`;
+    document.getElementById('checkinSection').style.display = '';
+    document.getElementById('checkinBtn').textContent = `✅ Check In ${checkinCount}`;
+  }
+
+  function changeCheckin(delta) {
+    checkinCount = Math.min(maxCheckin, Math.max(1, checkinCount + delta));
+    document.getElementById('checkinQty').textContent = checkinCount;
+    document.getElementById('checkinBtn').textContent = `✅ Check In ${checkinCount}`;
+  }
+
+  /* ── DO CHECK-IN ── */
+  async function doCheckin() {
+    if (!currentData || !currentData.refId) return;
+    document.getElementById('checkinBtn').disabled = true;
+    document.getElementById('loadingRow').classList.remove('hidden');
+
+    try {
+      const res  = await fetch(SHEET_URL + '?action=checkin&refId=' + encodeURIComponent(currentData.refId) + '&count=' + checkinCount);
+      const json = await res.json();
+
+      if (json.success) {
+        showToast(`✅ ${checkinCount} member${checkinCount > 1 ? 's' : ''} checked in!`);
+        // Refresh result with updated state
+        currentData.checkedIn = (parseInt(currentData.checkedIn) || 0) + checkinCount;
+        showResult(currentData);
+      } else {
+        showToast('❌ Check-in failed. Try again.');
+        document.getElementById('checkinBtn').disabled = false;
+      }
+    } catch {
+      showToast('❌ Network error. Check internet.');
+      document.getElementById('checkinBtn').disabled = false;
+    }
+
+    document.getElementById('loadingRow').classList.add('hidden');
+  }
+
+  function showInvalid(msg) {
+    showResultSection();
+    document.getElementById('resultIcon').textContent   = '❌';
+    document.getElementById('resultStatus').textContent = 'Invalid QR Code';
+    document.getElementById('resultStatus').className   = 'result-status invalid';
+    document.getElementById('resultRefId').textContent  = '';
+    document.getElementById('result-rows').innerHTML    =
+      `<div class="rrow"><span class="rkey">Error</span><span class="rval">${msg}</span></div>`;
+    document.getElementById('memberCountBox').style.display  = 'none';
+    document.getElementById('checkinSection').style.display  = 'none';
+    document.getElementById('allDoneBox').style.display      = 'none';
+    document.getElementById('checkinProgress').style.display = 'none';
+    document.getElementById('loadingRow').classList.add('hidden');
+  }
+
+  function showResultSection() {
+    document.getElementById('scannerSection').classList.add('hidden');
+    document.getElementById('resultSection').classList.remove('hidden');
   }
 
   function scanAnother() {
     document.getElementById('resultSection').classList.add('hidden');
     document.getElementById('scannerSection').classList.remove('hidden');
     document.getElementById('manualRef').value = '';
-    document.getElementById('result-rows').innerHTML = '';
+    currentData = null;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
   }
 </script>
 </body>

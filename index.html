@@ -341,7 +341,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       <div class="field">
         <label class="field-label">How many Adults? <span class="req">*</span></label>
         <div class="qty-row">
-          <div><div class="qty-label">Adults</div><div class="qty-sub">₹550 per person</div></div>
+          <div><div class="qty-label">Adults</div><div class="qty-sub">₹590 per person</div></div>
           <div class="qty-ctrl">
             <button class="qty-btn" onclick="changeQty('adults',-1)">−</button>
             <span class="qty-val" id="adults-val">1</span>
@@ -362,8 +362,8 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         </div>
       </div>
       <div class="summary-card">
-        <div class="summary-row"><span id="adults-label">Adults × 1</span><span id="adults-amt">₹550</span></div>
-        <div class="summary-row" id="kids-row"><span id="kids-label">Kids × 0</span><span id="kids-amt">₹0</span></div>
+        <div class="summary-row"><span id="adults-label">Adults × 1</span><span id="adults-amt">₹590</span></div>
+        <div class="summary-row" id="kids-row"><span id="kids-label">Kids × 0</span><span id="kids-amt">₹550</span></div>
         <hr class="summary-divider">
         <div class="summary-total"><span>Total</span><span id="sadya-total">₹550</span></div>
       </div>
@@ -644,7 +644,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   const SHEET_NAME  = 'Nammude Onam 2026 - Registrations';
   const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbxS7dQkn0uqncgP5Mdggr5Fu5kdMR8CTN5idZKF44V6Suplwe8-et-OpiSeBhgpmaPs6w/exec';
   const MIN_ONAM    = 3000;
-  const ADULT_PRICE = 550;
+  const ADULT_PRICE = 590;
   const KID_PRICE   = 550;
 
   let selectedEvent = null;
@@ -798,10 +798,13 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
     document.getElementById('receiptQRRef').textContent = refId;
     const qrData = JSON.stringify({
       refId,
-      name:  current.name,
-      flat:  current.flat,
-      event: current.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026',
+      name:   current.name,
+      flat:   current.flat,
+      event:  current.event === 'sadya' ? 'Onam Sadya' : 'Nammude Onam 2026',
       amount: '₹' + current.total.toLocaleString('en-IN'),
+      adults: current.adults || 0,
+      kids:   current.kids   || 0,
+      total:  (current.adults || 0) + (current.kids || 0),
       status: 'Paid'
     });
     // Use Google Charts API for reliable QR generation
