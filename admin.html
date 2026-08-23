@@ -20,6 +20,29 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 .header-title { font-family: 'Playfair Display', serif; font-size: 20px; color: #3d2a00; margin-bottom: 3px; }
 .header-sub { font-size: 12px; color: #a08030; }
 
+/* ── STATS BAR ── */
+.stats-bar {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin-bottom: 1.25rem;
+}
+.stat-card {
+  background: #fffdf8; border: 0.5px solid #e8d89a;
+  border-radius: 12px; padding: 10px 8px; text-align: center;
+}
+.stat-num { font-size: 26px; font-weight: 700; color: #c8920a; line-height: 1; }
+.stat-num.green  { color: #065f46; }
+.stat-num.orange { color: #92400e; }
+.stat-label { font-size: 10px; color: #a08030; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stats-refresh {
+  text-align: center; margin-bottom: 1rem;
+}
+.stats-refresh button {
+  background: none; border: none; color: #a08030; font-size: 12px;
+  cursor: pointer; font-family: 'Inter', sans-serif; padding: 4px 8px;
+}
+.stats-refresh button:hover { color: #c8920a; }
+.stats-loading { font-size: 11px; color: #c8b070; margin-top: 2px; }
+
 .scanner-card {
   background: #fffdf8; border: 0.5px solid #e8d89a;
   border-radius: 14px; padding: 1.25rem;
@@ -47,6 +70,45 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   cursor: pointer; margin-top: 8px; font-family: 'Inter', sans-serif;
 }
 
+/* search tabs */
+.search-tabs {
+  display: flex; gap: 6px; margin-bottom: 10px;
+}
+.search-tab {
+  flex: 1; height: 36px; border: 1px solid #ddd0a0; border-radius: 8px;
+  background: #fff; color: #a08030; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s;
+}
+.search-tab.active {
+  background: #c8920a; color: #fff; border-color: #c8920a;
+}
+
+.search-input {
+  width: 100%; height: 48px; border: 0.5px solid #ddd0a0; border-radius: 10px;
+  padding: 0 14px; font-size: 15px; color: #3d2a00; background: #fff;
+  font-family: 'Inter', sans-serif; margin-bottom: 8px;
+}
+.search-input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(200,146,10,0.13); }
+.search-input.upper { text-transform: uppercase; letter-spacing: 1px; }
+
+/* search results list */
+.search-results {
+  background: #fffdf8; border: 0.5px solid #e8d89a;
+  border-radius: 12px; overflow: hidden; margin-bottom: 1rem;
+}
+.search-result-item {
+  padding: 10px 14px; border-bottom: 0.5px solid #f0e8c8;
+  cursor: pointer; transition: background 0.1s;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: #fff8e8; }
+.sri-name { font-size: 14px; font-weight: 600; color: #3d2a00; }
+.sri-sub  { font-size: 11px; color: #a08030; margin-top: 2px; }
+.sri-badge { float: right; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-top: 2px; }
+.sri-badge.done    { background: #d1fae5; color: #065f46; }
+.sri-badge.partial { background: #fef3c7; color: #92400e; }
+.sri-badge.none    { background: #f0e8c8; color: #8b6914; }
+
 /* Result card */
 .result-card {
   background: #fffdf8; border: 0.5px solid #e8d89a;
@@ -58,10 +120,7 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   border-bottom: 0.5px solid #e8d89a; margin-bottom: 1rem;
 }
 .result-icon { font-size: 40px; margin-bottom: 6px; }
-.result-status {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px; margin-bottom: 3px;
-}
+.result-status { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 3px; }
 .result-status.valid   { color: #065f46; }
 .result-status.partial { color: #92400e; }
 .result-status.invalid { color: #b91c1c; }
@@ -78,27 +137,20 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 .badge-valid    { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
 .badge-partial  { background: #fef3c7; color: #92400e; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
 .badge-invalid  { background: #fee2e2; color: #b91c1c; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
-.badge-done     { background: #d1fae5; color: #065f46; font-size: 11px; padding: 3px 12px; border-radius: 20px; font-weight: 600; }
 
-/* Member count display */
+/* Member count box */
 .member-count-box {
   background: linear-gradient(135deg, #fffbee, #fff8e0);
   border: 1px solid #e8d89a; border-radius: 12px;
   padding: 1rem; margin: 0.75rem 0; text-align: center;
 }
 .member-count-label { font-size: 12px; color: #a08030; margin-bottom: 6px; }
-.member-count-numbers {
-  display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 6px;
-}
+.member-count-numbers { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 6px; }
 .mc-item { text-align: center; }
 .mc-num { font-size: 28px; font-weight: 700; color: #c8920a; line-height: 1; }
 .mc-sub { font-size: 11px; color: #a08030; margin-top: 2px; }
-.member-count-total {
-  font-size: 13px; color: #5c4010; font-weight: 600;
-  border-top: 0.5px solid #e8d89a; padding-top: 8px; margin-top: 6px;
-}
+.member-count-total { font-size: 13px; color: #5c4010; font-weight: 600; border-top: 0.5px solid #e8d89a; padding-top: 8px; margin-top: 6px; }
 
-/* Already checked-in banner */
 .checkin-progress {
   background: #fef3c7; border: 1px solid #f59e0b;
   border-radius: 10px; padding: 10px 14px;
@@ -107,113 +159,57 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 }
 .checkin-progress-icon { font-size: 18px; flex-shrink: 0; }
 
-/* Check-in section */
-.checkin-section {
-  border-top: 0.5px solid #e8d89a;
-  padding-top: 1rem; margin-top: 0.5rem;
-}
-.checkin-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 13px; color: #8b6914; margin-bottom: 0.75rem; text-align: center;
-}
-.checkin-input-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem;
-}
+.checkin-section { border-top: 0.5px solid #e8d89a; padding-top: 1rem; margin-top: 0.5rem; }
+.checkin-title { font-family: 'Playfair Display', serif; font-size: 13px; color: #8b6914; margin-bottom: 0.75rem; text-align: center; }
+.checkin-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; }
 .checkin-input-row label { font-size: 13px; color: #a08030; flex-shrink: 0; }
 .qty-row {
-  display: flex; align-items: center; gap: 0; background: #fff;
+  display: flex; align-items: center; background: #fff;
   border: 1px solid #ddd0a0; border-radius: 10px; overflow: hidden; flex: 1;
 }
-.qty-btn {
-  width: 40px; height: 40px; background: #fdf6e3;
-  border: none; font-size: 20px; color: #c8920a;
-  cursor: pointer; font-weight: 600; flex-shrink: 0;
-}
+.qty-btn { width: 40px; height: 40px; background: #fdf6e3; border: none; font-size: 20px; color: #c8920a; cursor: pointer; font-weight: 600; flex-shrink: 0; }
 .qty-btn:active { background: #f5e9c0; }
-.qty-val {
-  flex: 1; text-align: center; font-size: 18px;
-  font-weight: 700; color: #3d2a00; font-family: 'Inter', sans-serif;
-}
+.qty-val { flex: 1; text-align: center; font-size: 18px; font-weight: 700; color: #3d2a00; }
 .checkin-hint { font-size: 11px; color: #a08030; text-align: center; margin-bottom: 0.5rem; }
 
-/* All checked in state */
-.all-done-box {
-  background: #d1fae5; border: 1px solid #6ee7b7;
-  border-radius: 12px; padding: 1rem;
-  text-align: center; margin: 0.75rem 0;
-}
+.all-done-box { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 12px; padding: 1rem; text-align: center; margin: 0.75rem 0; }
 .all-done-icon { font-size: 32px; margin-bottom: 6px; }
 .all-done-text { font-size: 14px; color: #065f46; font-weight: 600; }
 .all-done-sub  { font-size: 12px; color: #059669; margin-top: 3px; }
 
-.manual-input {
-  width: 100%; height: 48px; border: 0.5px solid #ddd0a0; border-radius: 10px;
-  padding: 0 14px; font-size: 15px; color: #3d2a00; background: #fff;
-  font-family: 'Inter', sans-serif; margin-bottom: 8px;
-  text-transform: uppercase; letter-spacing: 1px;
-}
-.manual-input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(200,146,10,0.13); }
-
 .divider { text-align: center; font-size: 12px; color: #c8b070; margin: 10px 0; }
 .hidden { display: none !important; }
-
-.loading-row {
-  text-align: center; padding: 1rem;
-  font-size: 13px; color: #a08030;
-}
+.loading-row { text-align: center; padding: 1rem; font-size: 13px; color: #a08030; }
 
 .toast {
   position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
   background: #065f46; color: #fff; padding: 10px 20px;
   border-radius: 20px; font-size: 13px; font-weight: 500;
-  z-index: 999; opacity: 0; transition: opacity 0.3s;
-  white-space: nowrap;
+  z-index: 999; opacity: 0; transition: opacity 0.3s; white-space: nowrap;
 }
 .toast.show { opacity: 1; }
 
 .page-footer { text-align: center; margin-top: 2rem; font-size: 11px; color: #b8963a; font-family: 'Playfair Display', serif; line-height: 2; }
 
-/* ── PASSWORD GATE ── */
+/* PASSWORD GATE */
 #lockScreen {
   position: fixed; inset: 0; z-index: 9999;
-  background: #fdf9f0;
-  display: flex; align-items: center; justify-content: center;
-  padding: 1.5rem;
+  background: #fdf9f0; display: flex; align-items: center; justify-content: center; padding: 1.5rem;
 }
-.lock-card {
-  background: #fffdf8; border: 0.5px solid #e8d89a;
-  border-radius: 18px; padding: 2rem 1.5rem;
-  width: 100%; max-width: 380px; text-align: center;
-}
+.lock-card { background: #fffdf8; border: 0.5px solid #e8d89a; border-radius: 18px; padding: 2rem 1.5rem; width: 100%; max-width: 380px; text-align: center; }
 .lock-icon { font-size: 44px; margin-bottom: 0.75rem; }
-.lock-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 20px; color: #3d2a00; margin-bottom: 4px;
-}
+.lock-title { font-family: 'Playfair Display', serif; font-size: 20px; color: #3d2a00; margin-bottom: 4px; }
 .lock-sub { font-size: 12px; color: #a08030; margin-bottom: 1.5rem; }
-.lock-input {
-  width: 100%; height: 50px;
-  border: 1px solid #ddd0a0; border-radius: 12px;
-  padding: 0 16px; font-size: 16px; color: #3d2a00;
-  background: #fff; font-family: 'Inter', sans-serif;
-  margin-bottom: 0.75rem; letter-spacing: 1px;
-}
+.lock-input { width: 100%; height: 50px; border: 1px solid #ddd0a0; border-radius: 12px; padding: 0 16px; font-size: 16px; color: #3d2a00; background: #fff; font-family: 'Inter', sans-serif; margin-bottom: 0.75rem; letter-spacing: 1px; }
 .lock-input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(200,146,10,0.13); }
-.lock-btn {
-  width: 100%; height: 50px; background: #c8920a; color: #fffdf0;
-  border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
-  cursor: pointer; font-family: 'Inter', sans-serif;
-  transition: background 0.15s;
-}
+.lock-btn { width: 100%; height: 50px; background: #c8920a; color: #fffdf0; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; }
 .lock-btn:hover { background: #b07d08; }
-.lock-error {
-  font-size: 13px; color: #b91c1c;
-  margin-top: 0.75rem; min-height: 20px;
-}
+.lock-error { font-size: 13px; color: #b91c1c; margin-top: 0.75rem; min-height: 20px; }
 .lock-footer { font-size: 11px; color: #c8b070; margin-top: 1.5rem; font-family: 'Playfair Display', serif; }
 </style>
 </head>
 <body>
+
 <!-- LOCK SCREEN -->
 <div id="lockScreen">
   <div class="lock-card">
@@ -236,7 +232,27 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
     <div class="header-sub">Nammude Onam 2026 · Admin only</div>
   </div>
 
-  <!-- SCANNER -->
+  <!-- LIVE STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">—</div>
+      <div class="stat-label">Registered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num green" id="statIn">—</div>
+      <div class="stat-label">Checked In</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num orange" id="statPending">—</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+  <div class="stats-refresh">
+    <button onclick="loadStats()">🔄 Refresh counts</button>
+    <div class="stats-loading" id="statsLoading"></div>
+  </div>
+
+  <!-- SCANNER SECTION -->
   <div id="scannerSection">
     <div class="scanner-card">
       <div class="scanner-card-title">📷 Scan attendee QR code</div>
@@ -245,30 +261,53 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
       <button class="btn-secondary" id="stopBtn" onclick="stopScanner()" style="display:none;">Stop Camera</button>
     </div>
 
-    <div class="divider">── or enter manually ──</div>
+    <div class="divider">── or search / enter manually ──</div>
 
+    <!-- SEARCH CARD -->
     <div class="scanner-card">
-      <div class="scanner-card-title">⌨️ Enter Ref ID manually</div>
-      <input class="manual-input" id="manualRef" placeholder="ONA2026-0001" maxlength="15">
-      <button class="btn-primary" onclick="lookupManual()">Look up →</button>
+      <div class="scanner-card-title">🔍 Find registration</div>
+
+      <!-- Tabs -->
+      <div class="search-tabs">
+        <button class="search-tab active" id="tab-refid" onclick="switchTab('refid')">Ref ID</button>
+        <button class="search-tab" id="tab-phone" onclick="switchTab('phone')">Phone</button>
+        <button class="search-tab" id="tab-flat"  onclick="switchTab('flat')">Flat No.</button>
+      </div>
+
+      <!-- Ref ID input -->
+      <div id="input-refid">
+        <input class="search-input upper" id="manualRef" placeholder="SDY2026-XXXXX or ONA2026-XXXXX" maxlength="20">
+        <button class="btn-primary" onclick="lookupByRefId()">Look up →</button>
+      </div>
+
+      <!-- Phone input -->
+      <div id="input-phone" style="display:none;">
+        <input class="search-input" id="searchPhone" placeholder="Enter phone number" type="tel" maxlength="15">
+        <button class="btn-primary" onclick="searchBy('phone')">Search →</button>
+      </div>
+
+      <!-- Flat input -->
+      <div id="input-flat" style="display:none;">
+        <input class="search-input" id="searchFlat" placeholder="Enter flat number (e.g. 5097)" maxlength="10">
+        <button class="btn-primary" onclick="searchBy('flat')">Search →</button>
+      </div>
     </div>
+
+    <!-- Search results list -->
+    <div class="search-results hidden" id="searchResultsList"></div>
   </div>
 
   <!-- RESULT -->
   <div id="resultSection" class="hidden">
     <div class="result-card">
-
-      <!-- Header: icon + status -->
       <div class="result-header">
         <div class="result-icon" id="resultIcon">✅</div>
         <div class="result-status valid" id="resultStatus">Valid Registration</div>
         <div class="result-refid" id="resultRefId"></div>
       </div>
 
-      <!-- Basic info rows -->
       <div id="result-rows"></div>
 
-      <!-- Member count box -->
       <div class="member-count-box" id="memberCountBox" style="display:none;">
         <div class="member-count-label">Registered Members</div>
         <div class="member-count-numbers">
@@ -284,20 +323,17 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
         <div class="member-count-total" id="mc-total">Total: 0 members</div>
       </div>
 
-      <!-- Already checked-in progress (shown on repeat scans) -->
       <div class="checkin-progress" id="checkinProgress" style="display:none;">
         <span class="checkin-progress-icon">🔄</span>
         <span id="checkinProgressText"></span>
       </div>
 
-      <!-- All done box -->
       <div class="all-done-box" id="allDoneBox" style="display:none;">
         <div class="all-done-icon">🎉</div>
         <div class="all-done-text">All members checked in!</div>
         <div class="all-done-sub" id="allDoneSub"></div>
       </div>
 
-      <!-- Check-in section -->
       <div class="checkin-section" id="checkinSection" style="display:none;">
         <div class="checkin-title">How many members are checking in now?</div>
         <div class="checkin-input-row">
@@ -312,32 +348,27 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
         <button class="btn-primary" id="checkinBtn" onclick="doCheckin()">✅ Check In</button>
       </div>
 
-      <!-- Loading -->
       <div class="loading-row hidden" id="loadingRow">⏳ Saving check-in…</div>
-
     </div>
 
-    <button class="btn-secondary" onclick="scanAnother()">← Scan another</button>
+    <button class="btn-secondary" onclick="scanAnother()">← Back to scanner</button>
   </div>
 
-  <div class="page-footer">
-    🌸 Prestige Tranquility Malayali Samajam 🌸
-  </div>
+  <div class="page-footer">🌸 Prestige Tranquility Malayali Samajam 🌸</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxS7dQkn0uqncgP5Mdggr5Fu5kdMR8CTN5idZKF44V6Suplwe8-et-OpiSeBhgpmaPs6w/exec';
-
-  /* ── PASSWORD GATE ── */
-  const ADMIN_PASS = 'OnamNammude@2026';
+  const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbxS7dQkn0uqncgP5Mdggr5Fu5kdMR8CTN5idZKF44V6Suplwe8-et-OpiSeBhgpmaPs6w/exec';
+  const ADMIN_PASS  = 'OnamNammude@2026';
   const SESSION_KEY = 'ptms_admin_unlocked';
 
-  // Check if already unlocked this session
+  /* ── PASSWORD GATE ── */
   (function() {
     if (sessionStorage.getItem(SESSION_KEY) === 'yes') {
       document.getElementById('lockScreen').style.display = 'none';
+      loadStats();
     }
   })();
 
@@ -348,6 +379,7 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
       sessionStorage.setItem(SESSION_KEY, 'yes');
       document.getElementById('lockScreen').style.display = 'none';
       err.textContent = '';
+      loadStats();
     } else {
       err.textContent = '❌ Incorrect password. Please try again.';
       document.getElementById('lockPassword').value = '';
@@ -355,12 +387,43 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
     }
   }
 
-  let html5QrCode = null;
-  let currentData = null;   // parsed QR / sheet data
-  let checkinCount = 1;     // qty spinner value
-  let maxCheckin   = 1;     // max allowed (remaining)
+  /* ── LIVE STATS ── */
+  async function loadStats() {
+    const el = document.getElementById('statsLoading');
+    el.textContent = 'Loading…';
+    try {
+      const res  = await fetch(SHEET_URL + '?action=stats');
+      const json = await res.json();
+      if (json.success) {
+        document.getElementById('statTotal').textContent   = json.totalMembers   ?? '—';
+        document.getElementById('statIn').textContent      = json.checkedInTotal ?? '—';
+        document.getElementById('statPending').textContent = json.pendingTotal    ?? '—';
+        el.textContent = 'Updated ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+      } else {
+        el.textContent = 'Could not load stats';
+      }
+    } catch {
+      el.textContent = 'Could not load stats';
+    }
+  }
+
+  /* ── SEARCH TABS ── */
+  let activeTab = 'refid';
+  function switchTab(tab) {
+    activeTab = tab;
+    ['refid','phone','flat'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      document.getElementById('input-' + t).style.display = t === tab ? '' : 'none';
+    });
+    document.getElementById('searchResultsList').classList.add('hidden');
+  }
 
   /* ── SCANNER ── */
+  let html5QrCode = null;
+  let currentData = null;
+  let checkinCount = 1;
+  let maxCheckin   = 1;
+
   function startScanner() {
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('stopBtn').style.display  = 'block';
@@ -386,35 +449,69 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
     }
   }
 
-  /* ── PROCESS QR ── */
   function processQR(text) {
     try {
       const data = JSON.parse(text);
-      if (data.refId) {
-        // Fetch latest check-in state from sheet, merge with QR data
-        fetchCheckinState(data);
-      } else {
-        showInvalid('QR does not contain a valid Ref ID');
-      }
+      if (data.refId) fetchCheckinState(data);
+      else showInvalid('QR does not contain a valid Ref ID');
     } catch {
       showInvalid('Could not read QR code');
     }
   }
 
-  function lookupManual() {
+  /* ── LOOKUPS ── */
+  function lookupByRefId() {
     const ref = document.getElementById('manualRef').value.trim().toUpperCase();
     if (!ref) { alert('Please enter a Ref ID'); return; }
     fetchCheckinState({ refId: ref });
   }
 
-  /* ── FETCH FROM SHEET (get current check-in state) ── */
+  async function searchBy(field) {
+    const inputEl = document.getElementById('search' + field.charAt(0).toUpperCase() + field.slice(1));
+    const val = inputEl.value.trim();
+    if (!val) { alert('Please enter a value to search'); return; }
+
+    const listEl = document.getElementById('searchResultsList');
+    listEl.innerHTML = '<div class="loading-row">⏳ Searching…</div>';
+    listEl.classList.remove('hidden');
+
+    try {
+      const res  = await fetch(SHEET_URL + '?action=search&field=' + field + '&value=' + encodeURIComponent(val));
+      const json = await res.json();
+
+      if (json.success && json.results && json.results.length > 0) {
+        listEl.innerHTML = json.results.map(r => {
+          const total     = (parseInt(r.adults) || 0) + (parseInt(r.kids) || 0);
+          const checkedIn = parseInt(r.checkedIn) || 0;
+          const badgeClass = checkedIn >= total && total > 0 ? 'done' : checkedIn > 0 ? 'partial' : 'none';
+          const badgeText  = checkedIn >= total && total > 0 ? '✅ All in' : checkedIn > 0 ? `${checkedIn}/${total} in` : 'Not checked in';
+          return `<div class="search-result-item" onclick="selectSearchResult('${r.refId}')">
+            <span class="sri-badge ${badgeClass}">${badgeText}</span>
+            <div class="sri-name">${r.name}</div>
+            <div class="sri-sub">Flat ${r.flat} · ${total} member${total !== 1 ? 's' : ''} · ${r.refId}</div>
+          </div>`;
+        }).join('');
+      } else {
+        listEl.innerHTML = '<div class="loading-row">No registrations found</div>';
+      }
+    } catch {
+      listEl.innerHTML = '<div class="loading-row">❌ Search failed. Check connection.</div>';
+    }
+  }
+
+  function selectSearchResult(refId) {
+    document.getElementById('searchResultsList').classList.add('hidden');
+    fetchCheckinState({ refId });
+  }
+
+  /* ── FETCH CHECK-IN STATE ── */
   async function fetchCheckinState(qrData) {
     showResultSection();
     document.getElementById('loadingRow').classList.remove('hidden');
-    document.getElementById('checkinSection').style.display = 'none';
-    document.getElementById('memberCountBox').style.display = 'none';
+    document.getElementById('checkinSection').style.display  = 'none';
+    document.getElementById('memberCountBox').style.display  = 'none';
     document.getElementById('checkinProgress').style.display = 'none';
-    document.getElementById('allDoneBox').style.display = 'none';
+    document.getElementById('allDoneBox').style.display      = 'none';
     document.getElementById('result-rows').innerHTML = '<div class="loading-row">⏳ Loading registration…</div>';
 
     try {
@@ -422,16 +519,12 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
       const json = await res.json();
 
       if (json.success && json.data) {
-        // Merge sheet data (authoritative) with QR data (has adults/kids if new QR)
         const merged = { ...qrData, ...json.data };
-        // QR has adults/kids if it's a new-format QR — prefer QR for these if sheet doesn't have them
         if (!merged.adults && qrData.adults) merged.adults = qrData.adults;
         if (!merged.kids   && qrData.kids)   merged.kids   = qrData.kids;
-        if (!merged.total  && qrData.total)   merged.total  = qrData.total;
         currentData = merged;
         showResult(merged);
       } else {
-        // Sheet lookup failed — use QR data only (no check-in tracking possible)
         currentData = { ...qrData, checkedIn: 0 };
         showResult(currentData);
       }
@@ -439,7 +532,6 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
       currentData = { ...qrData, checkedIn: 0 };
       showResult(currentData);
     }
-
     document.getElementById('loadingRow').classList.add('hidden');
   }
 
@@ -447,28 +539,21 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   function showResult(data) {
     const icon   = document.getElementById('resultIcon');
     const status = document.getElementById('resultStatus');
-    const refEl  = document.getElementById('resultRefId');
+    document.getElementById('resultRefId').textContent = data.refId || '';
 
-    refEl.textContent = data.refId || '';
-
-    // Basic info rows
-    const row = (k, v) => v !== undefined && v !== '' && v !== null
+    const row = (k, v) => (v !== undefined && v !== '' && v !== null)
       ? `<div class="rrow"><span class="rkey">${k}</span><span class="rval">${v}</span></div>` : '';
     let rows = '';
     rows += row('Name',   data.name);
     rows += row('Flat',   data.flat);
-    rows += row('Event',  data.event);
     rows += row('Amount', data.amount);
     if (data.txnId) rows += row('TXN ID', data.txnId);
-    rows += `<div class="rrow"><span class="rkey">Payment</span><span class="rval">
-      <span class="badge-valid">✅ Paid</span>
-    </span></div>`;
+    rows += `<div class="rrow"><span class="rkey">Payment</span><span class="rval"><span class="badge-valid">✅ Paid</span></span></div>`;
     document.getElementById('result-rows').innerHTML = rows;
 
-    // Member counts
-    const adults   = parseInt(data.adults) || 0;
-    const kids     = parseInt(data.kids)   || 0;
-    const total    = adults + kids || parseInt(data.total) || 0;
+    const adults    = parseInt(data.adults)    || 0;
+    const kids      = parseInt(data.kids)      || 0;
+    const total     = adults + kids || parseInt(data.total) || 0;
     const checkedIn = parseInt(data.checkedIn) || 0;
     const remaining = Math.max(0, total - checkedIn);
 
@@ -479,38 +564,22 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
       document.getElementById('memberCountBox').style.display = '';
     }
 
-    // Check-in state
     if (total === 0) {
-      // Old QR without count data — just show paid, allow simple checkin
-      icon.textContent   = '✅';
-      status.textContent = 'Valid Registration';
-      status.className   = 'result-status valid';
+      icon.textContent = '✅'; status.textContent = 'Valid Registration'; status.className = 'result-status valid';
       setupCheckin(1, 1);
-
     } else if (checkedIn === 0) {
-      // Nobody checked in yet
-      icon.textContent   = '✅';
-      status.textContent = 'Valid Registration';
-      status.className   = 'result-status valid';
+      icon.textContent = '✅'; status.textContent = 'Valid Registration'; status.className = 'result-status valid';
       setupCheckin(total, total);
-
     } else if (checkedIn >= total) {
-      // All checked in
-      icon.textContent   = '🎉';
-      status.textContent = 'All Checked In';
-      status.className   = 'result-status valid';
-      document.getElementById('allDoneBox').style.display = '';
-      document.getElementById('allDoneSub').textContent   = `${total} of ${total} members entered`;
+      icon.textContent = '🎉'; status.textContent = 'All Checked In'; status.className = 'result-status valid';
+      document.getElementById('allDoneBox').style.display    = '';
+      document.getElementById('allDoneSub').textContent      = `${total} of ${total} members entered`;
       document.getElementById('checkinSection').style.display = 'none';
-
     } else {
-      // Partial — some already in
-      icon.textContent   = '⚠️';
-      status.textContent = 'Partially Checked In';
-      status.className   = 'result-status partial';
-      document.getElementById('checkinProgress').style.display = '';
-      document.getElementById('checkinProgressText').textContent =
-        `${checkedIn} of ${total} members already checked in — ${remaining} remaining`;
+      icon.textContent = '⚠️'; status.textContent = 'Partially Checked In'; status.className = 'result-status partial';
+      document.getElementById('checkinProgress').style.display    = '';
+      document.getElementById('checkinProgressText').textContent  =
+        `${checkedIn} of ${total} checked in — ${remaining} still pending`;
       setupCheckin(remaining, remaining);
     }
   }
@@ -518,17 +587,17 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   function setupCheckin(defaultVal, max) {
     maxCheckin   = max;
     checkinCount = Math.min(defaultVal, max);
-    document.getElementById('checkinQty').textContent = checkinCount;
-    document.getElementById('checkinHint').textContent =
-      max === 1 ? '1 member remaining' : `Max ${max} members can check in now`;
+    document.getElementById('checkinQty').textContent     = checkinCount;
+    document.getElementById('checkinHint').textContent    = max === 1 ? '1 member remaining' : `Max ${max} members can check in now`;
     document.getElementById('checkinSection').style.display = '';
-    document.getElementById('checkinBtn').textContent = `✅ Check In ${checkinCount}`;
+    document.getElementById('checkinBtn').textContent     = `✅ Check In ${checkinCount}`;
+    document.getElementById('checkinBtn').disabled        = false;
   }
 
   function changeCheckin(delta) {
     checkinCount = Math.min(maxCheckin, Math.max(1, checkinCount + delta));
-    document.getElementById('checkinQty').textContent = checkinCount;
-    document.getElementById('checkinBtn').textContent = `✅ Check In ${checkinCount}`;
+    document.getElementById('checkinQty').textContent  = checkinCount;
+    document.getElementById('checkinBtn').textContent  = `✅ Check In ${checkinCount}`;
   }
 
   /* ── DO CHECK-IN ── */
@@ -543,9 +612,9 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 
       if (json.success) {
         showToast(`✅ ${checkinCount} member${checkinCount > 1 ? 's' : ''} checked in!`);
-        // Refresh result with updated state
         currentData.checkedIn = (parseInt(currentData.checkedIn) || 0) + checkinCount;
         showResult(currentData);
+        loadStats(); // refresh counts
       } else {
         showToast('❌ Check-in failed. Try again.');
         document.getElementById('checkinBtn').disabled = false;
@@ -554,7 +623,6 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
       showToast('❌ Network error. Check internet.');
       document.getElementById('checkinBtn').disabled = false;
     }
-
     document.getElementById('loadingRow').classList.add('hidden');
   }
 
@@ -581,7 +649,10 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
   function scanAnother() {
     document.getElementById('resultSection').classList.add('hidden');
     document.getElementById('scannerSection').classList.remove('hidden');
-    document.getElementById('manualRef').value = '';
+    document.getElementById('manualRef').value   = '';
+    document.getElementById('searchPhone').value = '';
+    document.getElementById('searchFlat').value  = '';
+    document.getElementById('searchResultsList').classList.add('hidden');
     currentData = null;
   }
 
