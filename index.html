@@ -110,6 +110,9 @@ body { font-family: 'Inter', sans-serif; background: #fdf9f0; min-height: 100vh;
 .event-card.selected .radio-dot { border-color: #c8920a; }
 .radio-dot-inner { width: 10px; height: 10px; border-radius: 50%; background: #c8920a; display: none; }
 .event-card.selected .radio-dot-inner { display: block; }
+.event-card.closed { opacity: 0.55; cursor: not-allowed; }
+.event-card.closed:hover { border-color: #ddd0a0; background: #ffffff; box-shadow: none; }
+.closed-tag { position: absolute; top: 10px; right: 12px; background: #b91c1c; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.5px; }
 
 /* ── STEP INDICATOR ── */
 .step-indicator { display: flex; align-items: center; gap: 6px; margin-bottom: 1.5rem; padding: 0 0.25rem; }
@@ -280,14 +283,14 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
     </div>
     <p class="event-select-label">What would you like to register for?</p>
     <div class="event-cards">
-      <div class="event-card" id="card-sadya" onclick="selectEvent('sadya')">
+      <div class="event-card" id="card-sadya" onclick="selectEvent('sadya')" style="position:relative;">
         <div class="event-card-icon">🍛</div>
         <div class="event-card-body">
           <div class="event-card-name">Onam Sadya</div>
           <div class="event-card-date">26 August 2026</div>
           <div class="event-card-price">Adult ₹550 · Kids ₹550</div>
         </div>
-        <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+        <div id="sadya-closed-badge" class="radio-dot"><div class="radio-dot-inner"></div></div>
       </div>
       <div class="event-card" id="card-onam" onclick="selectEvent('onam')">
         <div class="event-card-icon">🎉</div>
@@ -341,7 +344,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       <div class="field">
         <label class="field-label">How many Adults? <span class="req">*</span></label>
         <div class="qty-row">
-          <div><div class="qty-label">Adults</div><div class="qty-sub">₹550 per person</div></div>
+          <div><div class="qty-label">Adults</div><div class="qty-sub">₹590 per person</div></div>
           <div class="qty-ctrl">
             <button class="qty-btn" onclick="changeQty('adults',-1)">−</button>
             <span class="qty-val" id="adults-val">1</span>
@@ -362,7 +365,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         </div>
       </div>
       <div class="summary-card">
-        <div class="summary-row"><span id="adults-label">Adults × 1</span><span id="adults-amt">₹550</span></div>
+        <div class="summary-row"><span id="adults-label">Adults × 1</span><span id="adults-amt">₹590</span></div>
         <div class="summary-row" id="kids-row"><span id="kids-label">Kids × 0</span><span id="kids-amt">₹550</span></div>
         <hr class="summary-divider">
         <div class="summary-total"><span>Total</span><span id="sadya-total">₹550</span></div>
@@ -645,11 +648,33 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   const SHEET_URL   = 'https://script.google.com/macros/s/AKfycbxS7dQkn0uqncgP5Mdggr5Fu5kdMR8CTN5idZKF44V6Suplwe8-et-OpiSeBhgpmaPs6w/exec';
   const MIN_ONAM    = 3000;
   const ADULT_PRICE = 550;
+  const SADYA_OPEN  = false;   // ← set true to re-open Sadya registration
+  const ONAM_OPEN   = true;    // ← set false to close Onam registration
   const KID_PRICE   = 550;
 
   let selectedEvent = null;
   let adults = 1, kids = 0;
   let current = {};
+
+  // Apply closed state on load
+  window.addEventListener('DOMContentLoaded', function() {
+    if (!SADYA_OPEN) {
+      const card = document.getElementById('card-sadya');
+      card.classList.add('closed');
+      const badge = document.createElement('div');
+      badge.className = 'closed-tag';
+      badge.textContent = 'CLOSED';
+      card.appendChild(badge);
+    }
+    if (!ONAM_OPEN) {
+      const card = document.getElementById('card-onam');
+      card.classList.add('closed');
+      const badge = document.createElement('div');
+      badge.className = 'closed-tag';
+      badge.textContent = 'CLOSED';
+      card.appendChild(badge);
+    }
+  });
   // Use sheet-side counter — generate unique ID from timestamp + random
   function generateRefId(event) {
     const prefix = event === 'sadya' ? 'SDY2026' : 'ONA2026';
@@ -664,6 +689,14 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
   /* ── EVENT SELECTION ── */
   function selectEvent(type) {
+    if (type === 'sadya' && !SADYA_OPEN) {
+      alert('Registration for Onam Sadya is now closed. Thank you for your interest!');
+      return;
+    }
+    if (type === 'onam' && !ONAM_OPEN) {
+      alert('Registration for Nammude Onam is now closed. Thank you for your interest!');
+      return;
+    }
     selectedEvent = type;
     document.getElementById('card-sadya').classList.toggle('selected', type === 'sadya');
     document.getElementById('card-onam').classList.toggle('selected',  type === 'onam');
