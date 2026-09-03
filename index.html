@@ -240,47 +240,11 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
     </div>
   </div>
 
-  <!-- ══ SCREEN 0: LOGIN (email or phone) ══ -->
-  <div id="loginSection">
-    <div class="login-card">
-      <div class="login-icon">📱</div>
-      <div class="login-title">Verify your mobile</div>
-      <div class="login-sub">Enter your mobile number to receive a one-time password. Only Prestige Tranquility residents can register.</div>
-
-      <!-- PHONE flow only -->
-      <div id="phoneFlow">
-        <div id="phoneStep">
-          <div class="login-input-wrap">
-            <input type="tel" id="loginPhone" placeholder="9876543210" maxlength="10" autocomplete="tel">
-          </div>
-          <div class="login-status" id="phoneStatus"></div>
-          <div id="recaptcha-container" style="margin:10px 0;display:flex;justify-content:center;"></div>
-          <button class="btn-primary" id="sendOtpBtn" onclick="sendOTP()">Send OTP →</button>
-        </div>
-        <div id="otpStep" class="hidden">
-          <div class="login-status info" id="otpMsg"></div>
-          <div class="otp-row">
-            <input type="tel" maxlength="1" id="o0" oninput="otpInput(this,0)">
-            <input type="tel" maxlength="1" id="o1" oninput="otpInput(this,1)">
-            <input type="tel" maxlength="1" id="o2" oninput="otpInput(this,2)">
-            <input type="tel" maxlength="1" id="o3" oninput="otpInput(this,3)">
-            <input type="tel" maxlength="1" id="o4" oninput="otpInput(this,4)">
-            <input type="tel" maxlength="1" id="o5" oninput="otpInput(this,5)">
-          </div>
-          <div class="login-status" id="otpStatus"></div>
-          <button class="btn-primary" id="verifyOtpBtn" onclick="verifyOTP()">Verify OTP →</button>
-          <button class="btn-secondary" onclick="resetPhone()" style="margin-top:8px;">← Use a different number</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
+  <!-- ══ SCREEN 0: OPEN REGISTRATION (no login required) ══ -->
+  <div id="loginSection" class="hidden"></div>
 
   <!-- ══ SCREEN 1: EVENT SELECTION ══ -->
   <div id="selectSection" class="hidden">
-    <div class="verified-badge show" id="verifiedBadge">
-      ✅ <span id="verifiedEmail"></span>
-    </div>
     <p class="event-select-label">What would you like to register for?</p>
     <div class="event-cards">
       <div class="event-card" id="card-sadya" onclick="selectEvent('sadya')" style="position:relative;">
@@ -504,141 +468,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
   </div>
 </div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth,
-           RecaptchaVerifier, signInWithPhoneNumber }  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-  /* ── FIREBASE CONFIG ── */
-  const firebaseConfig = {
-    apiKey:            "AIzaSyD5rDHGGQy_OQ8sZ_nJv0Wp5CkO0AZ290U",
-    authDomain:        "ptmalayalisamajam.firebaseapp.com",
-    projectId:         "ptmalayalisamajam",
-    storageBucket:     "ptmalayalisamajam.firebasestorage.app",
-    messagingSenderId: "713492734826",
-    appId:             "1:713492734826:web:8928a3a3641e6eddd23b13"
-  };
-
-  const app        = initializeApp(firebaseConfig);
-  const auth       = getAuth(app);
-  const ACTION_URL = 'https://ptmalayalisamajam.github.io';
-
-  let confirmationResult = null;
-  let recaptchaVerifier  = null;
-
-
-
-  /* ══ RECAPTCHA ══ */
-  function initRecaptcha() {
-    document.getElementById('sendOtpBtn').disabled = true;
-    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'normal',
-      callback: () => {
-        document.getElementById('sendOtpBtn').disabled = false;
-        setStatus('phoneStatus', '', '');
-      },
-      'expired-callback': () => {
-        document.getElementById('sendOtpBtn').disabled = true;
-        setStatus('phoneStatus', 'error', 'reCAPTCHA expired. Please tick again.');
-      }
-    });
-    recaptchaVerifier.render().catch(e => {
-      console.error('reCAPTCHA render error:', e);
-    });
-  }
-
-  /* ══ SEND OTP ══ */
-  window.sendOTP = async function() {
-    const raw   = document.getElementById('loginPhone').value.trim();
-    const phone = '+91' + raw;
-    if (!/^\d{10}$/.test(raw)) {
-      setStatus('phoneStatus', 'error', 'Enter a valid 10-digit Indian mobile number.');
-      return;
-    }
-    const btn = document.getElementById('sendOtpBtn');
-    btn.disabled = true; btn.textContent = 'Sending…';
-    setStatus('phoneStatus', 'info', 'Sending OTP to +91 ' + raw + '…');
-    try {
-      confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-      show('phoneStep', false);
-      show('otpStep',   true);
-      document.getElementById('otpMsg').textContent = '📱 OTP sent to +91 ' + raw + '. Enter the 6-digit code below.';
-      document.getElementById('o0').focus();
-    } catch (e) {
-      console.error('OTP error:', e.code, e.message);
-      btn.disabled = false; btn.textContent = 'Send OTP →';
-      let msg = '⚠️ Could not send OTP. ';
-      if (e.code === 'auth/invalid-phone-number')   msg += 'Invalid phone number.';
-      else if (e.code === 'auth/too-many-requests') msg += 'Too many attempts. Try after some time.';
-      else if (e.code === 'auth/captcha-check-failed') msg += 'reCAPTCHA failed. Please tick again.';
-      else msg += e.message;
-      setStatus('phoneStatus', 'error', msg);
-      if (recaptchaVerifier) { recaptchaVerifier.clear(); recaptchaVerifier = null; }
-      document.getElementById('recaptcha-container').innerHTML = '';
-      initRecaptcha();
-    }
-  };
-
-  /* ══ OTP DIGIT INPUT ══ */
-  window.otpInput = function(el, idx) {
-    el.value = el.value.replace(/\D/g,'');
-    if (el.value && idx < 5) document.getElementById('o' + (idx+1)).focus();
-    // auto verify when all 6 filled
-    const code = [0,1,2,3,4,5].map(i => document.getElementById('o'+i).value).join('');
-    if (code.length === 6) window.verifyOTP();
-  };
-
-  /* ══ VERIFY OTP ══ */
-  window.verifyOTP = async function() {
-    const code = [0,1,2,3,4,5].map(i => document.getElementById('o'+i).value).join('');
-    if (code.length < 6) { setStatus('otpStatus','error','Enter all 6 digits.'); return; }
-    const btn = document.getElementById('verifyOtpBtn');
-    btn.disabled = true; btn.textContent = 'Verifying…';
-    try {
-      const result = await confirmationResult.confirm(code);
-      onVerified(result.user.phoneNumber);
-    } catch {
-      btn.disabled = false; btn.textContent = 'Verify OTP →';
-      setStatus('otpStatus','error','⚠️ Incorrect OTP. Please try again.');
-    }
-  };
-
-  window.resetPhone = function() {
-    show('otpStep',   false);
-    show('phoneStep', true);
-    [0,1,2,3,4,5].forEach(i => document.getElementById('o'+i).value = '');
-    document.getElementById('loginPhone').value = '';
-    setStatus('phoneStatus','','');
-    document.getElementById('sendOtpBtn').disabled = false;
-    document.getElementById('sendOtpBtn').textContent = 'Send OTP →';
-    if (recaptchaVerifier) { recaptchaVerifier.clear(); recaptchaVerifier = null; }
-    document.getElementById('recaptcha-container').innerHTML = '';
-    initRecaptcha();
-  };
-
-
-
-  function onVerified(identity) {
-    window.verifiedEmail = identity;
-    document.getElementById('verifiedEmail').textContent = 'Signed in as ' + identity;
-    show('loginSection',  false);
-    show('selectSection', true);
-  }
-
-  function setStatus(id, type, msg) {
-    const el = document.getElementById(id);
-    el.className = 'login-status' + (type ? ' ' + type : '');
-    el.textContent = msg;
-  }
-
-  function show(id, visible) {
-    document.getElementById(id).classList.toggle('hidden', !visible);
-  }
-
-  // Default to phone OTP — init recaptcha on load
-  initRecaptcha();
-</script>
 
 <script>
   /* ── APP CONFIG ── */
@@ -658,6 +488,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
   // Apply closed state on load
   window.addEventListener('DOMContentLoaded', function() {
+    show('selectSection', true); // Open registration: skip login
     if (!SADYA_OPEN) {
       const card = document.getElementById('card-sadya');
       card.classList.add('closed');
