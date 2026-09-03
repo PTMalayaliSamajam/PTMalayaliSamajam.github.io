@@ -180,8 +180,12 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 .qr-hint { font-size: 12px; color: #8b6914; margin-bottom: 6px; }
 .qr-box { display: inline-block; background: white; padding: 10px; border-radius: 10px; border: 1px solid #e8d89a; margin: 6px 0; }
 .upi-pill { background: #fff8e8; border: 1px solid #c8a84b; border-radius: 8px; padding: 10px 16px; text-align: center; font-size: 14px; font-weight: 600; color: #7a5010; word-break: break-all; margin: 8px 0; }
-.upi-tap-btn { display: none; background: #5f259f; color: #fff; border-radius: 12px; padding: 14px; text-align: center; font-size: 15px; font-weight: 600; margin: 12px 0 4px; text-decoration: none; font-family: 'Inter', sans-serif; }
-.upi-tap-btn:hover { background: #4a1a80; }
+.upi-apps-grid { display: none; margin: 14px 0 4px; }
+.upi-apps-label { font-size: 11px; color: #8b6914; text-align: center; margin-bottom: 10px; font-weight: 600; letter-spacing: 1px; }
+.upi-apps-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.upi-app-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 8px; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+.upi-app-btn:hover { opacity: 0.88; }
+.upi-app-icon { font-size: 20px; }
 @media (pointer: coarse) { .mobile-only { display: block !important; } }
 .amount-big { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 600; color: #c8920a; text-align: center; margin: 8px 0 2px; }
 .amount-sub { font-size: 12px; color: #a08030; text-align: center; margin-bottom: 14px; }
@@ -401,9 +405,15 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
         <div class="upi-pill">getepay.esafbank326548@icici</div>
         <div class="amount-big" id="pay-amount">₹3,000</div>
         <div class="amount-sub" id="payFor"></div>
-        <a id="upi-deeplink" href="#" class="upi-tap-btn mobile-only">
-          📲 Pay ₹<span id="upi-btn-amount"></span> with UPI App
-        </a>
+        <div id="upi-app-btns" class="upi-apps-grid mobile-only">
+          <div class="upi-apps-label">TAP TO PAY WITH</div>
+          <div class="upi-apps-row">
+            <a id="btn-phonepe" href="#" class="upi-app-btn" style="background:#5f259f;"><span class="upi-app-icon">🟣</span>PhonePe</a>
+            <a id="btn-gpay"    href="#" class="upi-app-btn" style="background:#1a73e8;"><span class="upi-app-icon">🔵</span>GPay</a>
+            <a id="btn-paytm"   href="#" class="upi-app-btn" style="background:#00b9f5;"><span class="upi-app-icon">🩵</span>Paytm</a>
+            <a id="btn-bhim"    href="#" class="upi-app-btn" style="background:#00529b;"><span class="upi-app-icon">🔷</span>BHIM</a>
+          </div>
+        </div>
       </div>
       <div class="divider">🌿 ── 🌿</div>
       <ul class="pay-steps" id="pay-steps">
@@ -616,8 +626,20 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
     document.getElementById('qrcode').innerHTML = '';
     const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=PTMS+Onam+2026&am=${total}&cu=INR&tn=${encodeURIComponent(flat)}`;
     if (typeof QRCode !== 'undefined') new QRCode(document.getElementById('qrcode'), { text: upiUrl, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
-    document.getElementById('upi-deeplink').href = upiUrl;
-    document.getElementById('upi-btn-amount').textContent = total.toLocaleString('en-IN');
+    const upiParams = `pa=${encodeURIComponent(UPI_ID)}&pn=PTMS+Onam+2026&am=${total}&cu=INR&tn=${encodeURIComponent(flat)}`;
+    document.getElementById('btn-phonepe').href = `phonepe://pay?${upiParams}`;
+    document.getElementById('btn-gpay').href    = `gpay://upi/pay?${upiParams}`;
+    document.getElementById('btn-paytm').href   = `paytmmp://pay?${upiParams}`;
+    document.getElementById('btn-bhim').href    = `upi://pay?${upiParams}`;
+    // Simplify instructions after tapping an app button
+    function switchToAppInstructions() {
+      ['step-1','step-2','step-3'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+      const s4 = document.getElementById('step-4'); if(s4){ s4.querySelector('.step-num').textContent='1'; s4.querySelector('span:last-child').textContent='Add your flat number in the payment note / remarks (important!)'; }
+      const s5 = document.getElementById('step-5'); if(s5){ s5.querySelector('.step-num').textContent='2'; }
+    }
+    ['btn-phonepe','btn-gpay','btn-paytm','btn-bhim'].forEach(id => {
+      document.getElementById(id).addEventListener('click', switchToAppInstructions);
+    });
     show(selectedEvent === 'sadya' ? 'formSadya' : 'formOnam', false);
     show('paySection', true); setStep(2);
   }
