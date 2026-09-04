@@ -626,11 +626,11 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
     document.getElementById('qrcode').innerHTML = '';
     const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=PTMS+Onam+2026&am=${total}&cu=INR&tn=${encodeURIComponent(flat)}`;
     if (typeof QRCode !== 'undefined') new QRCode(document.getElementById('qrcode'), { text: upiUrl, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
-    const upiParams = `pa=${encodeURIComponent(UPI_ID)}&pn=PTMS+Onam+2026&cu=INR&tn=${encodeURIComponent(flat)}`; // no amount — user enters in app
-    document.getElementById('btn-phonepe').href = `phonepe://pay?${upiParams}`;
-    document.getElementById('btn-gpay').href    = `gpay://upi/pay?${upiParams}`;
-    document.getElementById('btn-paytm').href   = `paytmmp://pay?${upiParams}`;
-    document.getElementById('btn-bhim').href    = `upi://pay?${upiParams}`;
+    const upiPA = `pa=${encodeURIComponent(UPI_ID)}&pn=PTMS`;
+    document.getElementById('btn-phonepe').href = `phonepe://pay?${upiPA}`;
+    document.getElementById('btn-gpay').href    = `gpay://upi/pay?${upiPA}`;
+    document.getElementById('btn-paytm').href   = `paytmmp://pay?${upiPA}`;
+    document.getElementById('btn-bhim').href    = `upi://pay?${upiPA}`;
     // Simplify instructions after tapping an app button
     function switchToAppInstructions() {
       ['step-1','step-2','step-3'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
