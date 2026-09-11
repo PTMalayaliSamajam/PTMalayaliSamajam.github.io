@@ -585,7 +585,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
   /* ── SADYA → PAYMENT ── */
   function goToPaymentSadya() {
-    const name = v('s-fname'), phone = v('s-fphone'), flat = v('s-fflat'), email = v('s-femail');
+    const name = v('s-fname'), phone = v('s-fphone'), flat = v('s-fflat'), email = v('s-femail').trim();
     const ok = { name: !!name, phone: /^\d{10}$/.test(phone), flat: !!flat, email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), adults: adults >= 1 };
     showErr('s-fname', !ok.name); showErr('s-fphone', !ok.phone); showErr('s-fflat', !ok.flat); showErr('s-femail', !ok.email); showErr('adults', !ok.adults);
     if (!ok.name || !ok.phone || !ok.flat || !ok.email || !ok.adults) return;
@@ -596,7 +596,7 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
 
   /* ── ONAM → PAYMENT ── */
   function goToPaymentOnam() {
-    const name = v('o-fname'), phone = v('o-fphone'), flat = v('o-fflat'), email = v('o-femail'), onam = parseInt(document.getElementById('o-fonam').value) || 0;
+    const name = v('o-fname'), phone = v('o-fphone'), flat = v('o-fflat'), email = v('o-femail').trim(), onam = parseInt(document.getElementById('o-fonam').value) || 0;
     const ok = { name: !!name, phone: /^\d{10}$/.test(phone), flat: !!flat, email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), onam: onam >= MIN_ONAM };
     showErr('o-fname', !ok.name); showErr('o-fphone', !ok.phone); showErr('o-fflat', !ok.flat); showErr('o-femail', !ok.email); showErr('o-fonam', !ok.onam);
     if (!ok.name || !ok.phone || !ok.flat || !ok.email || !ok.onam) return;
