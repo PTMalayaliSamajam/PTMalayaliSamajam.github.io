@@ -352,7 +352,7 @@ async function openRef(refId, opts = {}) {
   if (r.passCode && opts.scanned && opts.code !== r.passCode) { showInvalid(refId, "the code on this QR doesn't match our records (copied or made-up pass)."); return; }
   S.unverified = !!(r.passCode && !opts.scanned && opts.code !== r.passCode);
   S.current = r;
-  S.arrive = { a: Math.max(0, (r.adults || 0) - (r.checkedInAdults || 0)), k: Math.max(0, (r.kids || 0) - (r.checkedInKids || 0)) };
+  S.arrive = { n: Math.max(0, (r.adults || 0) + (r.kids || 0) - (r.checkedInAdults || 0) - (r.checkedInKids || 0)) };
   renderGuest();
   show($("guest"));
   $("guest").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -379,11 +379,12 @@ function renderGuest() {
   const inA = r.checkedInAdults || 0, inK = r.checkedInKids || 0;
   const leftA = bookedA - inA, leftK = bookedK - inK;
   const done = paid && leftA + leftK === 0;
-  const log = (r.checkinLog || []).map((l) => `${fmtTime(l.at)} · ${l.adults}A ${l.kids}K · ${esc((l.by || "").split("@")[0])}`).join("<br>");
+  const booked = bookedA + bookedK, inn = inA + inK, left = leftA + leftK;
+  const log = (r.checkinLog || []).map((l) => `${fmtTime(l.at)} · ${(l.adults || 0) + (l.kids || 0)} in · ${esc((l.by || "").split("@")[0])}`).join("<br>");
   const cs = currentSlotId();
   const slotWarn = paid && cs && r.slotId && r.slotId !== cs && !done
     ? `<div class="msg warn">Booked for <b>${esc(r.slotLabel)}</b> — not the current slot.</div>` : "";
-  S.arrive.a = Math.min(S.arrive.a, leftA); S.arrive.k = Math.min(S.arrive.k, leftK);
+  S.arrive.n = Math.min(S.arrive.n, left);
 
   $("guest").innerHTML = `
     <div class="head">
@@ -397,29 +398,25 @@ function renderGuest() {
     ${!paid ? `<div class="msg err">Payment not confirmed. Do not admit yet.</div>
       ${r.orderId ? `<button class="btn ghost block" id="gCheck" type="button">Check with Razorpay</button>` : ""}` : `
     <div class="grid">
-      <div><b>${bookedA} / ${bookedK}</b><span>Booked A / K</span></div>
-      <div><b>${inA} / ${inK}</b><span>Already in</span></div>
-      <div><b>${leftA} / ${leftK}</b><span>Remaining</span></div>
+      <div><b>${booked}</b><span>Total pax</span></div>
+      <div><b>${inn}</b><span>Already in</span></div>
+      <div><b>${left}</b><span>Remaining</span></div>
     </div>
     ${done ? `<div class="msg warn">Everyone on this pass has already entered.</div>` : `
-    <div class="arrive">
-      <div><label class="f" style="margin-top:0">Adults arriving</label>
-        <div class="stepper" data-k="a"><button type="button" data-d="-1">−</button><output>${S.arrive.a}</output><button type="button" data-d="1">+</button></div></div>
-      <div><label class="f" style="margin-top:0">Kids arriving</label>
-        <div class="stepper" data-k="k"><button type="button" data-d="-1">−</button><output>${S.arrive.k}</output><button type="button" data-d="1">+</button></div></div>
-    </div>
-    <button class="btn block" id="gIn" type="button" ${S.arrive.a + S.arrive.k ? "" : "disabled"}>Check in ${S.arrive.a + S.arrive.k}</button>`}
+    <label class="f">Guests arriving now</label>
+    <div class="stepper" data-k="n"><button type="button" data-d="-1">−</button><output>${S.arrive.n}</output><button type="button" data-d="1">+</button></div>
+    <button class="btn block" id="gIn" type="button" ${S.arrive.n ? "" : "disabled"}>Check in ${S.arrive.n}</button>`}
     ${(r.checkinLog || []).length ? `<div class="log"><b>Entries</b><br>${log}</div>
       <button class="btn ghost small" id="gUndo" type="button" style="margin-top:8px">Undo last entry</button>` : ""}`}
     <div id="gMsg" class="msg hidden"></div>`;
 
   $("guest").querySelectorAll(".stepper").forEach((st) => st.addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    const k = st.dataset.k, max = k === "a" ? leftA : leftK;
-    S.arrive[k] = Math.max(0, Math.min(max, S.arrive[k] + Number(b.dataset.d)));
+    S.arrive.n = Math.max(0, Math.min(left, S.arrive.n + Number(b.dataset.d)));
     renderGuest();
   }));
-  $("gIn")?.addEventListener("click", () => checkIn(S.arrive.a, S.arrive.k));
+  // One guest count; older passes with separate kids fill adults first, then kids
+  $("gIn")?.addEventListener("click", () => { const a = Math.min(S.arrive.n, leftA); checkIn(a, S.arrive.n - a); });
   $("gUndo")?.addEventListener("click", undoLast);
   $("gCheck")?.addEventListener("click", async (e) => {
     e.target.disabled = true; e.target.innerHTML = '<span class="spinner"></span>Checking…';
@@ -441,7 +438,7 @@ async function checkIn(a, k) {
       const log = [...(d.checkinLog || []), { at: Timestamp.now(), by: S.user.email, adults: a, kids: k }].slice(-50);
       tx.update(ref, { checkedInAdults: na, checkedInKids: nk, checkinLog: log, lastCheckinAt: serverTimestamp(), lastCheckinBy: S.user.email });
     });
-    S.arrive = { a: 0, k: 0 };
+    S.arrive = { n: 0 };
     gMsg(`✓ ${a + k} checked in`, "ok");
   } catch (e) {
     console.error(e);
