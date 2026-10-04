@@ -213,7 +213,7 @@
 
     <label class="f">Sadya slot <span class="req">*</span></label>
     <div id="slots" class="slots" role="radiogroup" aria-label="Sadya slot"></div>
-    <div class="hint">Please arrive at the start of your slot. Seats are limited per slot.</div>
+    <div class="hint">Please arrive at the start of your slot.</div>
 
     <div class="total">
       <span class="calc" id="calc">1 × ₹450</span>
@@ -484,10 +484,11 @@ function renderSlots() {
     const fits = s.left >= state.pax;
     const lbl = document.createElement("label");
     lbl.className = "slot" + (fits ? "" : " disabled");
-    const leftTxt = s.left <= 0 ? "Full" : !fits ? `Only ${s.left} left` : `${s.left} seats left`;
+    // Seat counts stay private: residents only see when a slot can't take their group
+    const leftTxt = s.left <= 0 ? "Full" : !fits ? "Not enough seats" : "";
     lbl.innerHTML = `<input type="radio" name="slot" value="${s.id}" ${fits ? "" : "disabled"}>
       <span class="t">${s.label}</span>
-      <span class="left ${s.left > 0 && s.left <= 15 ? "low" : ""}">${leftTxt}</span>`;
+      <span class="left">${leftTxt}</span>`;
     if (fits && s.id === chosen) lbl.querySelector("input").checked = true;
     box.appendChild(lbl);
   });
