@@ -163,7 +163,7 @@
   <!-- Closed -->
   <section id="closedCard" class="card hidden">
     <h2>Registration is closed</h2>
-    <p class="sub">Thank you for the overwhelming response. Already registered? Find your pass below.</p>
+    <p class="sub">Thank you for the overwhelming response. Lost your pass? Verify your mobile below to see it again.</p>
   </section>
 
   <!-- Registration form -->
@@ -226,16 +226,33 @@
 
   <!-- Find registration (only when OTP is switched off) -->
   <section id="findCard" class="card hidden">
-    <h2>Already registered?</h2>
-    <p class="sub">Lost your pass? Enter the mobile number, flat and email you registered with.</p>
+    <h2>Lost your pass?</h2>
+    <p class="sub">Verify the mobile number you registered with using a one-time SMS code, and your pass appears here.</p>
     <label class="f" for="fPhone">Mobile</label>
-    <input id="fPhone" type="tel" inputmode="numeric" maxlength="14">
-    <label class="f" for="fFlat">Flat no.</label>
-    <input id="fFlat" type="text" maxlength="20">
-    <label class="f" for="fEmail">Email</label>
-    <input id="fEmail" type="email" maxlength="120" autocomplete="email">
+    <div class="phonerow">
+      <div class="phonewrap"><span>+91</span><input id="fPhone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="10-digit mobile"></div>
+      <button id="fSend" class="btn-sm" type="button">Send code</button>
+    </div>
+    <div id="fOtpBox" class="otpbox hidden">
+      <label for="fCode">Enter the 6-digit code sent to <span id="fSentTo"></span></label>
+      <div class="phonerow">
+        <input id="fCode" class="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+        <button id="fVerify" class="btn-sm" type="button">Show pass</button>
+      </div>
+      <div class="otprow">
+        <button id="fChange" class="link" type="button">Change number</button>
+        <button id="fResend" class="link" type="button" disabled>Resend code</button>
+      </div>
+    </div>
     <div id="findMsg" class="msg err hidden" role="alert"></div>
-    <button id="findBtn" class="btn ghost" type="button">Show my pass</button>
+    <div id="fRecaptcha"></div>
+    <p class="hint" style="margin-top:14px">SMS not arriving? <button id="fEmailToggle" class="link" type="button">Email my pass instead</button></p>
+    <div id="fEmailBox" class="hidden">
+      <label class="f" for="fFlat">Flat no.</label>
+      <input id="fFlat" type="text" maxlength="20">
+      <div class="hint">We'll send the pass to the email address used when registering — never to this screen.</div>
+      <button id="findBtn" class="btn ghost" type="button">Email my pass</button>
+    </div>
   </section>
 
   <!-- Pass / receipt -->
@@ -601,22 +618,84 @@ async function confirmPayment(resp, order) {
   btn.disabled = false; updateTotal();
   const m = $("formMsg");
   m.className = "msg info";
-  m.textContent = `Payment received (ID ${args.paymentId}) — we're still confirming it. Your reference is ${order.refId}. ${state.otp ? "In a few minutes, refresh this page to see your pass." : 'In a few minutes, use "Already registered?" below (mobile, flat and email) to see your pass.'} It will also be emailed to you.`;
+  m.textContent = `Payment received (ID ${args.paymentId}) — we're still confirming it. Your reference is ${order.refId}. ${state.otp ? "In a few minutes, refresh this page to see your pass. It will also be emailed to you." : "Your pass will be emailed to you. If it does not arrive, use “Lost your pass?” below."}`;
   show(m);
 }
 
-// ------------------------------------------------------------------ find (OTP off)
-$("findBtn").addEventListener("click", async () => {
-  const msg = $("findMsg"); show(msg, false);
-  const btn = $("findBtn");
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Looking up…';
+// ------------------------------------------------------------------ lost pass: OTP to view, or email to the registered address
+let fVerifier = null, fConfirm = null, fTimer = null;
+function findMsg(text, kind = "err") { const m = $("findMsg"); m.className = "msg " + kind; m.textContent = text; show(m, !!text); }
+function fResetVerifier() {
+  try { fVerifier?.clear(); } catch {}
+  fVerifier = null;
+  const fresh = document.createElement("div"); fresh.id = "fRecaptcha";
+  $("fRecaptcha").replaceWith(fresh);
+}
+function fStartTimer() {
+  let n = 30; const b = $("fResend");
+  b.disabled = true; b.textContent = `Resend code in ${n}s`;
+  clearInterval(fTimer);
+  fTimer = setInterval(() => { n--; if (n <= 0) { clearInterval(fTimer); b.disabled = false; b.textContent = "Resend code"; } else b.textContent = `Resend code in ${n}s`; }, 1000);
+}
+async function fSendCode() {
+  findMsg("");
+  const num = tenDigits($("fPhone").value);
+  if (!/^[6-9]\d{9}$/.test(num)) { findMsg("Please enter a valid 10-digit mobile number."); return; }
+  const btn = $("fSend"); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   try {
-    const r = await call("findRegistration")({ eventId: state.eventId, phone: $("fPhone").value, flat: $("fFlat").value, email: $("fEmail").value.trim() });
-    showPass(r.data);
+    if (!fVerifier) fVerifier = new RecaptchaVerifier(auth, "fRecaptcha", { size: "invisible" });
+    fConfirm = await signInWithPhoneNumber(auth, "+91" + num, fVerifier);
+    $("fSentTo").textContent = "+91 " + num;
+    $("fPhone").readOnly = true;
+    show($("fOtpBox")); $("fCode").value = ""; $("fCode").focus();
+    fStartTimer();
   } catch (e) {
-    msg.textContent = e.message || "Not found."; show(msg);
+    console.error(e); fResetVerifier(); findMsg(otpMessage(e));
+  } finally { btn.disabled = false; btn.textContent = "Send code"; }
+}
+async function fVerifyCode() {
+  findMsg("");
+  const code = $("fCode").value.replace(/\D/g, "");
+  if (code.length !== 6) return findMsg("Enter the 6-digit code from the SMS.");
+  const btn = $("fVerify"); if (btn.disabled) return;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    await fConfirm.confirm(code);            // proves this phone belongs to the person
+    clearInterval(fTimer);
+    const r = await call("myRegistration")({ eventId: state.eventId });
+    if (r.data.found) {
+      show($("fOtpBox"), false); $("fPhone").readOnly = false; $("fPhone").value = "";
+      showPass(r.data.receipt);
+    } else {
+      findMsg("No paid registration found for this mobile number. Check the number you used when registering.");
+      await signOut(auth);
+      show($("fOtpBox"), false); $("fPhone").readOnly = false;
+    }
+  } catch (e) {
+    console.error(e); findMsg(otpMessage(e));
+  } finally { btn.disabled = false; btn.textContent = "Show pass"; }
+}
+$("fSend").addEventListener("click", fSendCode);
+$("fPhone").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fSendCode(); } });
+$("fVerify").addEventListener("click", fVerifyCode);
+$("fCode").addEventListener("input", (e) => { if (e.target.value.replace(/\D/g, "").length === 6) fVerifyCode(); });
+$("fResend").addEventListener("click", () => { fResetVerifier(); fSendCode(); });
+$("fChange").addEventListener("click", () => { clearInterval(fTimer); findMsg(""); show($("fOtpBox"), false); $("fPhone").readOnly = false; $("fPhone").focus(); });
+$("fEmailToggle").addEventListener("click", () => { show($("fEmailBox")); $("fFlat").focus(); });
+
+$("findBtn").addEventListener("click", async () => {
+  findMsg("");
+  const btn = $("findBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Sending…';
+  try {
+    // The pass is only ever emailed to the registered address — never shown here
+    const r = await call("findRegistration")({ eventId: state.eventId, phone: $("fPhone").value, flat: $("fFlat").value });
+    findMsg(r.data.message, "info");
+    $("fFlat").value = "";
+  } catch (e) {
+    findMsg(e.message || "Please try again.");
   } finally {
-    btn.disabled = false; btn.textContent = "Show my pass";
+    btn.disabled = false; btn.textContent = "Email my pass";
   }
 });
 
@@ -640,7 +719,7 @@ function showPass(d) {
 
 $("anotherBtn").addEventListener("click", async () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (state.otp && state.phone) {
+  if (auth.currentUser) {
     // Sign out so the next person on this phone verifies their own number
     state.lastOrder = null;
     await signOut(auth);
