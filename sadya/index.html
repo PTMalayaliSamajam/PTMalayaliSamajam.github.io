@@ -334,7 +334,7 @@ async function boot() {
   if (state.config.orgEmail) { $("orgMail").textContent = state.config.orgEmail; $("orgMail").href = "mailto:" + state.config.orgEmail; }
   const unit = unitPrice();
   $("evPrice").textContent = `${rupees(unit)} per person`;
-  $("paxNote").textContent = `${rupees(unit)} per banana leaf.`;
+  $("paxNote").textContent = `${rupees(unit)} per banana leaf. Already booked and need more seats? Just book again — the extra guests get their own pass.`;
   document.title = `${ev.name} · PTMS`;
 
   state.otp = !!state.config.requireOtp;
