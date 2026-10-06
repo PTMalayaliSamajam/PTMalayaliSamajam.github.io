@@ -203,7 +203,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, getDoc, updateDoc, collection, query, where, onSnapshot, getDocs, runTransaction, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
-import { firebaseConfig, FUNCTIONS_REGION, APP_CHECK_SITE_KEY } from "./firebase-config.js";
+import { firebaseConfig, FUNCTIONS_REGION, APP_CHECK_SITE_KEY } from "/sadya/firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 if (APP_CHECK_SITE_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
@@ -396,7 +396,7 @@ function renderGuest() {
     ${S.unverified ? `<div class="msg warn">Opened without scanning the QR — confirm the name and flat with the guest before admitting.</div>` : ""}
     ${slotWarn}
     ${!paid ? `<div class="msg err">Payment not confirmed. Do not admit yet.</div>
-      ${r.orderId ? `<button class="btn ghost block" id="gCheck" type="button">Check with Razorpay</button>` : ""}` : `
+      ${(r.orderId || r.paymentLinkId) ? `<button class="btn ghost block" id="gCheck" type="button">Check with Razorpay</button>` : ""}` : `
     <div class="grid">
       <div><b>${booked}</b><span>Total pax</span></div>
       <div><b>${inn}</b><span>Already in</span></div>

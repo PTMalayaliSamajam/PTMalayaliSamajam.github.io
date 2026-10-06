@@ -146,7 +146,7 @@
 <body>
 
 <header class="hero">
-  <img class="logo" src="logo.png" alt="Nammude Onam" width="488" height="252">
+  <img class="logo" src="/sadya/logo.png" alt="Nammude Onam" width="488" height="252">
   <h1 id="evName">Onam Sadya 2026</h1>
   <div class="org" id="orgName">Prestige Tranquility Malayali Samajam</div>
   <div class="meta">
@@ -284,14 +284,13 @@
   </footer>
 </main>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
 import { getAuth, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
-import { firebaseConfig, FUNCTIONS_REGION, APP_CHECK_SITE_KEY } from "./firebase-config.js";
+import { firebaseConfig, FUNCTIONS_REGION, APP_CHECK_SITE_KEY } from "/sadya/firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 if (APP_CHECK_SITE_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
@@ -340,8 +339,10 @@ async function boot() {
 
   state.otp = !!state.config.requireOtp;
   show($("loading"), false);
-  showMain();
   state.booted = true;
+  if (await handlePaymentReturn()) return;
+  showMain();
+  restoreDraft();
   if (state.otp) onAuthStateChanged(auth, afterAuth); // a returning resident may already be verified
 }
 
@@ -543,6 +544,24 @@ async function refreshSlots() {
   try { const av = await call("getAvailability")({ eventId: state.eventId }); state.slots = av.data.slots; renderSlots(); } catch {}
 }
 
+// ------------------------------------------------------------------ payment (Razorpay payment page)
+const DRAFT_KEY = "sadyaDraft";
+function saveDraft(v) { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(v)); } catch {} }
+function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch {} }
+function restoreDraft() {
+  let v = null;
+  try { v = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null"); } catch {}
+  if (!v) return;
+  $("name").value = v.name || "";
+  if (!state.otp) $("phone").value = v.phone || "";
+  $("flat").value = v.flat || "";
+  $("email").value = v.email || "";
+  state.pax = Math.max(1, Math.min(maxPax(), (v.adults || 1) + (v.kids || 0)));
+  updateTotal();
+  const r = v.slotId && $("slots").querySelector(`input[value="${v.slotId}"]`);
+  if (r && !r.disabled) r.checked = true;
+}
+
 $("regForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   formError("");
@@ -555,71 +574,63 @@ $("regForm").addEventListener("submit", async (e) => {
 
   const btn = $("payBtn");
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Starting payment…';
+  btn.innerHTML = '<span class="spinner"></span>Opening secure payment…';
   try {
-    // Reuse the same order if the user just closed the popup without changing anything
-    const key = JSON.stringify(v);
-    let order;
-    if (state.lastOrder && state.lastOrder.key === key && Date.now() - state.lastOrder.at < 12 * 60e3) {
-      order = state.lastOrder.data;
-    } else {
-      order = (await call("createOrder")(v)).data;
-      state.lastOrder = { key, data: order, at: Date.now() };
-    }
-    openCheckout(order);
+    saveDraft(v); // so the form is filled in again if they come back without paying
+    const returnUrl = location.origin + location.pathname;
+    const r = await call("createOrder")({ ...v, returnUrl });
+    // Razorpay's own payment page (UPI apps, cards, netbanking). It sends them back here after paying.
+    location.href = r.data.payUrl;
   } catch (e) {
     console.error(e);
     if (e.details?.slots) { state.slots = e.details.slots; renderSlots(); }
     formError(e.message || "Something went wrong. Please try again.");
     if (e.code === "functions/resource-exhausted") refreshSlots();
-  } finally {
     btn.disabled = false;
     updateTotal();
   }
 });
 
-function openCheckout(order) {
-  const rz = new Razorpay({
-    key: order.keyId,
-    order_id: order.orderId,
-    amount: order.amountPaise,
-    currency: "INR",
-    name: "PTMS Onam Sadya",
-    description: `${order.eventName} · Ref ${order.refId}`,
-    prefill: order.prefill,
-    notes: { refId: order.refId },
-    theme: { color: "#1f4d2b" },
-    handler: (resp) => confirmPayment(resp, order),
-    modal: { ondismiss: () => formError("Payment was not completed. You can try again — your seats are held for a few minutes.") },
-  });
-  rz.on("payment.failed", (r) => formError(`Payment failed: ${r.error?.description || "please try again"}.`));
-  rz.open();
-}
-
-async function confirmPayment(resp, order) {
-  const btn = $("payBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Confirming payment…';
-  formError("");
-  const args = { orderId: resp.razorpay_order_id, paymentId: resp.razorpay_payment_id, signature: resp.razorpay_signature };
+/** Back from Razorpay's payment page: confirm with the server and show the pass. Returns true if handled. */
+async function handlePaymentReturn() {
+  const q = new URLSearchParams(location.search);
+  const linkId = q.get("razorpay_payment_link_id");
+  if (!linkId) return false;
+  const args = {
+    linkId,
+    referenceId: q.get("razorpay_payment_link_reference_id") || "",
+    status: q.get("razorpay_payment_link_status") || "",
+    paymentId: q.get("razorpay_payment_id") || "",
+    signature: q.get("razorpay_signature") || "",
+  };
+  history.replaceState(null, "", location.pathname); // keep the payment details out of the address bar
+  show($("loading")); $("loading").innerHTML = '<span class="spinner"></span>Confirming your payment…';
   for (let attempt = 1; attempt <= 4; attempt++) {
     try {
       const r = await call("verifyPayment")(args);
-      state.lastOrder = null;
-      $("regForm").reset(); state.pax = 1; updateTotal(); renderPhone();
+      clearDraft();
+      show($("loading"), false);
       showPass(r.data);
-      return;
+      return true;
     } catch (e) {
       console.error(e);
-      if (e.code === "functions/permission-denied") { formError(e.message); break; }
+      if (e.code === "functions/permission-denied" || e.code === "functions/failed-precondition" || e.code === "functions/not-found") {
+        show($("loading"), false);
+        showMain(); restoreDraft();
+        formError(e.message);
+        return true;
+      }
       await new Promise((ok) => setTimeout(ok, 1500 * attempt));
     }
   }
-  btn.disabled = false; updateTotal();
+  show($("loading"), false);
+  showMain(); restoreDraft();
   const m = $("formMsg");
   m.className = "msg info";
-  m.textContent = `Payment received (ID ${args.paymentId}) — we're still confirming it. Your reference is ${order.refId}. ${state.otp ? "In a few minutes, refresh this page to see your pass. It will also be emailed to you." : "Your pass will be emailed to you. If it does not arrive, use “Lost your pass?” below."}`;
+  m.textContent = `Payment received (ID ${args.paymentId}) — we're still confirming it. Your reference is ${args.referenceId}. Your pass will be emailed to you within a few minutes. Please don't pay again.`;
   show(m);
+  m.scrollIntoView({ behavior: "smooth", block: "center" });
+  return true;
 }
 
 // ------------------------------------------------------------------ lost pass: OTP to view, or email to the registered address
@@ -719,9 +730,9 @@ function showPass(d) {
 
 $("anotherBtn").addEventListener("click", async () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
+  clearDraft();
   if (auth.currentUser) {
     // Sign out so the next person on this phone verifies their own number
-    state.lastOrder = null;
     await signOut(auth);
     $("phone").value = "";
   }
