@@ -99,6 +99,10 @@
   .caps { display: grid; grid-template-columns: 1fr 90px; gap: 8px 10px; align-items: center; margin-top: 8px; }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .evbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .evbar label { font-weight: 700; color: var(--muted); }
+  .evbar select { flex: 1; font: inherit; font-weight: 700; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+  .evtag { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: #f1e3b8; color: #1f4d2b; margin-top: 4px; }
   @media (max-width: 420px) { .stats { grid-template-columns: repeat(2, 1fr); } .ss { grid-template-columns: 96px 1fr 58px; } }
 </style>
 </head>
@@ -106,7 +110,7 @@
 
 <header class="bar">
   <div class="in">
-    <h1>Sadya Gate</h1>
+    <h1>PTMS Gate</h1>
     <div class="who"><span id="whoName"></span> <button id="signOut" class="hidden" type="button">Sign out</button></div>
   </div>
 </header>
@@ -127,13 +131,17 @@
   </section>
 
   <div id="app" class="hidden">
+    <div class="evbar">
+      <label for="evSel">Event</label>
+      <select id="evSel"></select>
+    </div>
     <div class="stats">
       <div class="stat"><b id="stFam">0</b><span>Families</span></div>
       <div class="stat"><b id="stPpl">0</b><span>Guests booked</span></div>
       <div class="stat"><b id="stIn">0</b><span>Checked in</span></div>
       <div class="stat"><b id="stLeft">0</b><span>Yet to arrive</span></div>
     </div>
-    <div class="card" style="padding:12px 14px">
+    <div class="card" id="slotCard" style="padding:12px 14px">
       <div class="muted" style="margin-bottom:4px">By slot · <span style="color:var(--leaf);font-weight:700">■</span> checked in <span style="color:var(--gold);font-weight:700">■</span> booked</div>
       <div id="slotStats" class="slotstats"></div>
     </div>
@@ -179,15 +187,28 @@
         <div><b>Mobile OTP for residents</b><div class="muted">Residents verify their number by SMS before registering. Switch off if SMS isn't arriving; they'll register without OTP.</div></div>
         <label class="switch"><input type="checkbox" id="otpToggle"><span></span></label>
       </div>
-      <label class="f">Seats per slot</label>
-      <div id="caps" class="caps"></div>
-      <button id="saveCaps" class="btn ghost small" type="button" style="margin-top:10px">Save seats</button>
+      <div id="capsBlock">
+        <label class="f">Seats per slot</label>
+        <div id="caps" class="caps"></div>
+        <button id="saveCaps" class="btn ghost small" type="button" style="margin-top:10px">Save seats</button>
+      </div>
       <div id="setMsg" class="msg hidden"></div>
 
       <h2 style="margin-top:22px">Google Sheet</h2>
       <p class="muted">Paid registrations copy to the Sheet automatically. Use this if the Sheet was cleared or missed rows.</p>
       <button id="resyncBtn" class="btn ghost small" type="button">Re-sync all to Sheet</button>
       <button id="exportBtn" class="btn ghost small" type="button">Download CSV</button>
+
+      <h2 style="margin-top:22px">Import from the old UPI site</h2>
+      <p class="muted">Bring in families who already paid by UPI on the old registration page, so they show up here, in the Sheet, and their old receipt QR scans at the gate. In the old Google Sheet: <b>File → Download → Comma-separated values (.csv)</b>, then choose that file. Nothing is saved until you press Import. No emails are sent.</p>
+      <input id="impFile" type="file" accept=".csv,text/csv">
+      <div id="impEventRow" class="hidden" style="margin-top:8px">
+        <label class="f" for="impEvent">Only rows where the Event column is</label>
+        <select id="impEvent"></select>
+      </div>
+      <div id="impPreview" class="muted" style="margin-top:8px"></div>
+      <button id="impBtn" class="btn small hidden" type="button" style="margin-top:8px">Import</button>
+      <div id="impMsg" class="msg hidden"></div>
 
     </section>
 
@@ -249,11 +270,26 @@ $("signOut").addEventListener("click", () => { stopCam(); signOut(auth); });
 async function loadConfig() {
   const snap = await getDoc(doc(db, "config", "site"));
   S.config = snap.data();
-  S.eventId = S.config.activeEvent;
-  S.event = S.config.events[S.eventId];
-  document.title = `${S.event.name} · Gate`;
-  renderSettings();
+  const ids = Object.keys(S.config.events || {});
+  let saved = ""; try { saved = localStorage.getItem("gateEvent") || ""; } catch {}
+  $("evSel").innerHTML = ids.map((id) => `<option value="${esc(id)}">${esc(S.config.events[id].name || id)}</option>`).join("");
+  selectEvent(ids.includes(saved) ? saved : S.config.activeEvent, false);
 }
+
+function selectEvent(id, relisten = true) {
+  S.eventId = id;
+  S.event = S.config.events[id];
+  $("evSel").value = id;
+  try { localStorage.setItem("gateEvent", id); } catch {}
+  document.title = `${S.event.name} · Gate`;
+  const hasSlots = (S.event.slots || []).length > 0;
+  show($("slotCard"), hasSlots); show($("capsBlock"), hasSlots);
+  S.current = null; show($("guest"), false);
+  renderSettings();
+  if (relisten) { if (S.unsub) S.unsub(); listen(); }
+}
+$("evSel").addEventListener("change", (e) => selectEvent(e.target.value));
+const evName = (id) => (S.config?.events?.[id]?.name) || id;
 
 function listen() {
   const q = query(collection(db, "registrations"), where("eventId", "==", S.eventId), where("status", "==", "PAID"));
@@ -317,9 +353,14 @@ function onScan(text) {
   const now = Date.now();
   if (text === S.lastScan.t && now - S.lastScan.at < 4000) return; // ignore repeat frames
   S.lastScan = { t: text, at: now };
-  const m = String(text).toUpperCase().match(/([A-Z0-9]+-\d{2,})(?:\.([A-Z0-9]{6,}))?/);
-  if (!m) { showInvalid(String(text).slice(0, 40), "This QR is not a Sadya pass."); return; }
-  openRef(m[1], { code: m[2] || "", scanned: true });
+  let ref = "", code = "";
+  try { const j = JSON.parse(text); if (j && j.refId) ref = String(j.refId).toUpperCase(); } catch {} // old-site receipt QR
+  if (!ref) {
+    const m = String(text).toUpperCase().match(/([A-Z0-9]+-[A-Z0-9]{2,})(?:\.([A-Z0-9]{6,}))?/);
+    if (m) { ref = m[1]; code = m[2] || ""; }
+  }
+  if (!ref) { showInvalid(String(text).slice(0, 40), "This QR is not a PTMS pass."); return; }
+  openRef(ref, { code, scanned: true });
   if (navigator.vibrate) navigator.vibrate(80);
 }
 $("manualRef").addEventListener("keydown", (e) => {
@@ -352,7 +393,8 @@ async function openRef(refId, opts = {}) {
   if (r.passCode && opts.scanned && opts.code !== r.passCode) { showInvalid(refId, "the code on this QR doesn't match our records (copied or made-up pass)."); return; }
   S.unverified = !!(r.passCode && !opts.scanned && opts.code !== r.passCode);
   S.current = r;
-  S.arrive = { n: Math.max(0, (r.adults || 0) + (r.kids || 0) - (r.checkedInAdults || 0) - (r.checkedInKids || 0)) };
+  const cnt = (r.adults || 0) + (r.kids || 0);
+  S.arrive = { n: cnt === 0 ? 1 : Math.max(0, cnt - (r.checkedInAdults || 0) - (r.checkedInKids || 0)) };
   renderGuest();
   show($("guest"));
   $("guest").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -375,11 +417,14 @@ function currentSlotId() {
 function renderGuest() {
   const r = S.current; if (!r) return;
   const paid = r.status === "PAID";
-  const bookedA = r.adults || 0, bookedK = r.kids || 0;
+  // Imported old-site passes may have no member count: let volunteers enter the number arriving
+  const open = (r.adults || 0) + (r.kids || 0) === 0;
+  const bookedA = open ? 99 : (r.adults || 0), bookedK = open ? 0 : (r.kids || 0);
   const inA = r.checkedInAdults || 0, inK = r.checkedInKids || 0;
   const leftA = bookedA - inA, leftK = bookedK - inK;
-  const done = paid && leftA + leftK === 0;
+  const done = paid && !open && leftA + leftK === 0;
   const booked = bookedA + bookedK, inn = inA + inK, left = leftA + leftK;
+  const otherEvent = r.eventId && r.eventId !== S.eventId;
   const log = (r.checkinLog || []).map((l) => `${fmtTime(l.at)} · ${(l.adults || 0) + (l.kids || 0)} in · ${esc((l.by || "").split("@")[0])}`).join("<br>");
   const cs = currentSlotId();
   const slotWarn = paid && cs && r.slotId && r.slotId !== cs && !done
@@ -389,18 +434,20 @@ function renderGuest() {
   $("guest").innerHTML = `
     <div class="head">
       <div><div class="ref">${esc(r.id)}</div><div class="nm">${esc(r.name)}</div>
-        <div class="muted">Flat ${esc(r.flat)} · <a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></div></div>
+        <div class="muted">Flat ${esc(r.flat)} · <a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></div>
+        <span class="evtag">${esc(evName(r.eventId))}</span>${r.imported ? ` <span class="evtag">Paid by UPI · old site</span>` : ""}</div>
       <span class="badge ${!paid ? "pend" : done ? "done" : "paid"}">${!paid ? esc(r.status) : done ? "All in" : "Paid"}</span>
     </div>
     ${r.slotLabel ? `<div class="slot">${esc(r.slotLabel)}</div>` : ""}
+    ${otherEvent ? `<div class="msg warn">This pass is for <b>${esc(evName(r.eventId))}</b>, not ${esc(S.event.name)}. Admit only if that event is the one happening now.</div>` : ""}
     ${S.unverified ? `<div class="msg warn">Opened without scanning the QR — confirm the name and flat with the guest before admitting.</div>` : ""}
     ${slotWarn}
     ${!paid ? `<div class="msg err">Payment not confirmed. Do not admit yet.</div>
       ${(r.orderId || r.paymentLinkId) ? `<button class="btn ghost block" id="gCheck" type="button">Check with Razorpay</button>` : ""}` : `
     <div class="grid">
-      <div><b>${booked}</b><span>Total pax</span></div>
+      <div><b>${open ? "—" : booked}</b><span>${open ? "Members not given" : "Total pax"}</span></div>
       <div><b>${inn}</b><span>Already in</span></div>
-      <div><b>${left}</b><span>Remaining</span></div>
+      <div><b>${open ? "—" : left}</b><span>Remaining</span></div>
     </div>
     ${done ? `<div class="msg warn">Everyone on this pass has already entered.</div>` : `
     <label class="f">Guests arriving now</label>
@@ -434,7 +481,8 @@ async function checkIn(a, k) {
       const snap = await tx.get(ref);
       const d = snap.data();
       const na = (d.checkedInAdults || 0) + a, nk = (d.checkedInKids || 0) + k;
-      if (na > d.adults || nk > d.kids) throw new Error("More people than booked — someone may have just checked this pass in.");
+      const noCount = (d.adults || 0) + (d.kids || 0) === 0; // imported pass without a member count
+      if (!noCount && (na > d.adults || nk > d.kids)) throw new Error("More people than booked — someone may have just checked this pass in.");
       const log = [...(d.checkinLog || []), { at: Timestamp.now(), by: S.user.email, adults: a, kids: k }].slice(-50);
       tx.update(ref, { checkedInAdults: na, checkedInKids: nk, checkinLog: log, lastCheckinAt: serverTimestamp(), lastCheckinBy: S.user.email });
     });
@@ -542,10 +590,104 @@ $("exportBtn").addEventListener("click", () => {
   const csv = [head, ...rows].map((row) => row.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-  a.download = `sadya-registrations-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `${S.eventId}-registrations-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 });
 
+// ================================================================ import (old UPI site)
+function parseCsv(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  text = text.replace(/^\uFEFF/, "");
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter((r) => r.some((v) => String(v).trim() !== ""));
+}
+
+// Which old-Sheet column feeds which field (matched loosely on the header text)
+const IMPORT_FIELDS = [
+  ["refId", /^ref|reference/],
+  ["name", /^(full\s*)?name$/],
+  ["phone", /phone|mobile/],
+  ["flat", /flat|door/],
+  ["email", /e-?mail/],
+  ["adults", /^adults?$/],
+  ["kids", /^kids?$|child/],
+  ["amount", /amount|contribution|total/],
+  ["txnId", /txn|transaction|utr|upi/],
+  ["status", /^status$/],
+  ["registeredOn", /registered|timestamp|^ts$|^date/],
+  ["event", /^event/],
+];
+const IMP = { rows: [], eventCol: false };
+
+$("impFile").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  show($("impMsg"), false); show($("impBtn"), false);
+  const grid = parseCsv(await f.text());
+  if (grid.length < 2) { $("impPreview").textContent = "That file has no rows."; return; }
+  const head = grid[0].map((h) => String(h).trim().toLowerCase());
+  const col = {};
+  IMPORT_FIELDS.forEach(([k, re]) => { const i = head.findIndex((h, j) => re.test(h) && !Object.values(col).includes(j)); if (i >= 0) col[k] = i; });
+  if (col.refId == null || col.name == null || col.flat == null) {
+    $("impPreview").textContent = "Couldn't find the Ref ID, Name and Flat columns in this file. Is it the old registrations Sheet?"; return;
+  }
+  IMP.rows = grid.slice(1).map((r) => Object.fromEntries(Object.entries(col).map(([k, i]) => [k, String(r[i] ?? "").trim()])));
+  IMP.eventCol = col.event != null;
+  if (IMP.eventCol) {
+    const vals = [...new Set(IMP.rows.map((r) => r.event).filter(Boolean))];
+    const want = (S.event.name || "").toLowerCase().split(/\s+/)[0];
+    $("impEvent").innerHTML = ["(all rows)", ...vals].map((v) => `<option>${esc(v)}</option>`).join("");
+    const guess = vals.find((v) => v.toLowerCase().includes(want));
+    if (guess) $("impEvent").value = guess;
+  }
+  show($("impEventRow"), IMP.eventCol);
+  previewImport();
+});
+$("impEvent").addEventListener("change", previewImport);
+
+function importRows() {
+  const ev = $("impEvent").value;
+  return IMP.rows
+    .filter((r) => !IMP.eventCol || ev === "(all rows)" || r.event === ev)
+    .filter((r) => !r.status || /paid|success|confirm/i.test(r.status));
+}
+
+async function previewImport() {
+  const rows = importRows();
+  $("impPreview").innerHTML = '<span class="spinner"></span>Checking…';
+  try {
+    const r = await call("importLegacy")({ eventId: S.eventId, rows, dryRun: true });
+    const sk = r.data.skipped;
+    $("impPreview").innerHTML = `<b>${r.data.imported}</b> famil${r.data.imported === 1 ? "y" : "ies"} will be added to <b>${esc(S.event.name)}</b>.` +
+      (sk.length ? `<br>${sk.length} skipped:<br>` + sk.slice(0, 30).map((x) => `${esc(x.refId)} ${esc(x.name)} — ${esc(x.why)}`).join("<br>") + (sk.length > 30 ? "<br>…" : "") : "");
+    $("impBtn").textContent = `Import ${r.data.imported} into ${S.event.name}`;
+    show($("impBtn"), r.data.imported > 0);
+  } catch (err) { $("impPreview").textContent = err.message; }
+}
+
+$("impBtn").addEventListener("click", async () => {
+  const rows = importRows();
+  if (!confirm(`Add these families to ${S.event.name} as paid (UPI, old site)?`)) return;
+  const b = $("impBtn"); b.disabled = true; b.innerHTML = '<span class="spinner"></span>Importing…';
+  const m = $("impMsg");
+  try {
+    const r = await call("importLegacy")({ eventId: S.eventId, rows });
+    m.className = "msg ok"; m.textContent = `Imported ${r.data.imported}. They'll appear in the Sheet within a minute.`;
+    show($("impBtn"), false); $("impFile").value = ""; $("impPreview").textContent = "";
+  } catch (err) { m.className = "msg err"; m.textContent = err.message; }
+  finally { show(m); b.disabled = false; }
+});
 </script>
 </body>
 </html>

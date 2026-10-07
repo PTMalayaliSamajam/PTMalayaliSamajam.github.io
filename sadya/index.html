@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-event="sadya2026">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -169,7 +169,7 @@
   <!-- Registration form -->
   <form id="regForm" class="card hidden" novalidate>
     <h2>Register your family</h2>
-    <p class="sub">Choose a slot, pay securely with UPI, card or net banking, and get your entry pass instantly.</p>
+    <p class="sub" id="formSub">Choose a slot, pay securely with UPI, card or net banking, and get your entry pass instantly.</p>
 
     <label class="f" for="name">Full name <span class="req">*</span></label>
     <input id="name" type="text" autocomplete="name" maxlength="80" required>
@@ -203,7 +203,7 @@
     <input id="email" type="email" autocomplete="email" maxlength="120" required>
     <div class="hint">Your pass will also be emailed here.</div>
 
-    <label class="f">Total pax <small>(adults and kids who need a banana leaf for lunch)</small></label>
+    <label class="f" id="paxLabel">Total pax <small>(adults and kids who need a banana leaf for lunch)</small></label>
     <div class="stepper" id="paxStepper">
       <button type="button" data-d="-1" aria-label="Fewer people">−</button>
       <output id="pax">1</output>
@@ -211,9 +211,11 @@
     </div>
     <div class="hint" id="paxNote">₹450 per banana leaf.</div>
 
-    <label class="f">Sadya slot <span class="req">*</span></label>
-    <div id="slots" class="slots" role="radiogroup" aria-label="Sadya slot"></div>
-    <div class="hint">Please arrive at the start of your slot.</div>
+    <div id="slotBlock">
+      <label class="f">Sadya slot <span class="req">*</span></label>
+      <div id="slots" class="slots" role="radiogroup" aria-label="Sadya slot"></div>
+      <div class="hint">Please arrive at the start of your slot.</div>
+    </div>
 
     <div class="total">
       <span class="calc" id="calc">1 × ₹450</span>
@@ -305,6 +307,9 @@ const show = (el, on = true) => el.classList.toggle("hidden", !on);
 const rupees = (n) => "₹" + Number(n).toLocaleString("en-IN");
 const tenDigits = (v) => String(v || "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
 
+// Which event this page registers for: <html data-event="…">. Blank = the active event in config.
+const EVENT_ID = document.documentElement.dataset.event || "";
+
 const state = {
   config: null, eventId: null, event: null, slots: [], pax: 1, lastOrder: null,
   otp: false,       // OTP required (admin switch)
@@ -315,7 +320,7 @@ const state = {
 // ------------------------------------------------------------------ boot
 async function boot() {
   try {
-    const av = await call("getAvailability")({});
+    const av = await call("getAvailability")(EVENT_ID ? { eventId: EVENT_ID } : {});
     state.slots = av.data.slots || [];
     state.eventId = av.data.eventId;
     const snap = await getDoc(doc(db, "config", "site"));
@@ -333,8 +338,17 @@ async function boot() {
   $("orgName").textContent = state.config.orgName || "";
   if (state.config.orgEmail) { $("orgMail").textContent = state.config.orgEmail; $("orgMail").href = "mailto:" + state.config.orgEmail; }
   const unit = unitPrice();
-  $("evPrice").textContent = `${rupees(unit)} per person`;
-  $("paxNote").textContent = `${rupees(unit)} per banana leaf. Already booked and need more seats? Just book again — the extra guests get their own pass.`;
+  if (isFamily()) {
+    // Flat family fee: no slots; the member count is only for the gate
+    $("evPrice").textContent = `${rupees(unit)} per family`;
+    $("formSub").textContent = "Pay securely with UPI, card or net banking and get your family's entry pass instantly. One registration per flat.";
+    $("paxLabel").innerHTML = 'Family members attending <small>(adults and kids)</small>';
+    $("paxNote").textContent = `For the entry count only — the fee is ${rupees(unit)} per family.`;
+    show($("slotBlock"), false);
+  } else {
+    $("evPrice").textContent = `${rupees(unit)} per person`;
+    $("paxNote").textContent = `${rupees(unit)} per banana leaf. Already booked and need more seats? Just book again — the extra guests get their own pass.`;
+  }
   document.title = `${ev.name} · PTMS`;
 
   state.otp = !!state.config.requireOtp;
@@ -472,6 +486,7 @@ $("logoutBtn").addEventListener("click", async () => {
 });
 
 // ------------------------------------------------------------------ form
+function isFamily() { return (state.event.pricing || {}).mode !== "perHead"; }
 function unitPrice() {
   const p = state.event.pricing || {};
   return p.mode === "perHead" ? (p.adult || 0) : (p.familyFee || 0);
@@ -486,7 +501,7 @@ const paxText = (n) => `${n} ${n === 1 ? "person" : "people"}`;
 function updateTotal() {
   const total = price();
   $("pax").textContent = state.pax;
-  $("calc").textContent = `${state.pax} × ${rupees(unitPrice())}`;
+  $("calc").textContent = isFamily() ? `Family registration · ${paxText(state.pax)}` : `${state.pax} × ${rupees(unitPrice())}`;
   $("amt").textContent = rupees(total);
   $("payBtn").textContent = `Pay ${rupees(total)} & register`;
   $("paxStepper").querySelector('[data-d="-1"]').disabled = state.pax <= 1;
@@ -536,7 +551,7 @@ function readForm() {
   if (!/^[6-9]\d{9}$/.test(v.phone)) return [null, "Please enter a valid 10-digit mobile number."];
   if (!v.flat) return [null, "Please enter your flat number."];
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email)) return [null, "Please enter a valid email address."];
-  if (!v.slotId) return [null, "Please choose a Sadya slot."];
+  if (state.slots.length && !v.slotId) return [null, "Please choose a Sadya slot."];
   return [v, null];
 }
 
@@ -545,7 +560,7 @@ async function refreshSlots() {
 }
 
 // ------------------------------------------------------------------ payment (Razorpay payment page)
-const DRAFT_KEY = "sadyaDraft";
+const DRAFT_KEY = "regDraft-" + (EVENT_ID || "default");
 function saveDraft(v) { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(v)); } catch {} }
 function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch {} }
 function restoreDraft() {
