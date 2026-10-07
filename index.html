@@ -528,6 +528,8 @@ input:focus { outline: none; border-color: #c8920a; box-shadow: 0 0 0 3px rgba(2
       alert('Registration for Nammude Onam is now closed. Thank you for your interest!');
       return;
     }
+    // Nammude Onam now registers on the new page with Razorpay (UPI, cards, net banking)
+    if (type === 'onam') { location.href = '/onam/'; return; }
     selectedEvent = type;
     document.getElementById('card-sadya').classList.toggle('selected', type === 'sadya');
     document.getElementById('card-onam').classList.toggle('selected',  type === 'onam');
