@@ -203,6 +203,7 @@
     <input id="email" type="email" autocomplete="email" maxlength="120" required>
     <div class="hint">Your pass will also be emailed here.</div>
 
+    <div id="paxBlock">
     <label class="f" id="paxLabel">Total pax <small>(adults and kids who need a banana leaf for lunch)</small></label>
     <div class="stepper" id="paxStepper">
       <button type="button" data-d="-1" aria-label="Fewer people">−</button>
@@ -210,6 +211,7 @@
       <button type="button" data-d="1" aria-label="More people">+</button>
     </div>
     <div class="hint" id="paxNote">₹450 per banana leaf.</div>
+    </div>
 
     <div id="slotBlock">
       <label class="f">Sadya slot <span class="req">*</span></label>
@@ -342,8 +344,7 @@ async function boot() {
     // Flat family fee: no slots; the member count is only for the gate
     $("evPrice").textContent = `${rupees(unit)} per family`;
     $("formSub").textContent = "Pay securely with UPI, card or net banking and get your family's entry pass instantly. One registration per flat.";
-    $("paxLabel").innerHTML = 'Family members attending <small>(adults and kids)</small>';
-    $("paxNote").textContent = `For the entry count only — the fee is ${rupees(unit)} per family.`;
+    show($("paxBlock"), false);
     show($("slotBlock"), false);
   } else {
     $("evPrice").textContent = `${rupees(unit)} per person`;
@@ -501,7 +502,7 @@ const paxText = (n) => `${n} ${n === 1 ? "person" : "people"}`;
 function updateTotal() {
   const total = price();
   $("pax").textContent = state.pax;
-  $("calc").textContent = isFamily() ? `Family registration · ${paxText(state.pax)}` : `${state.pax} × ${rupees(unitPrice())}`;
+  $("calc").textContent = isFamily() ? "Family registration" : `${state.pax} × ${rupees(unitPrice())}`;
   $("amt").textContent = rupees(total);
   $("payBtn").textContent = `Pay ${rupees(total)} & register`;
   $("paxStepper").querySelector('[data-d="-1"]').disabled = state.pax <= 1;
@@ -542,7 +543,7 @@ function readForm() {
     phone: state.otp ? state.phone : tenDigits($("phone").value),
     flat: $("flat").value.trim(),
     email: $("email").value.trim(),
-    adults: state.pax, // one total count; kept in the "adults" field for the backend and gate
+    adults: isFamily() ? 0 : state.pax, // one total count; kept in the "adults" field for the backend and gate
     kids: 0,
     slotId: $("slots").querySelector("input:checked")?.value || "",
   };
@@ -733,7 +734,8 @@ function showPass(d) {
   show($("pSlot"), !!(d.slotLabel || d.eventDates));
   $("pName").textContent = d.name;
   $("pFlat").textContent = d.flat;
-  $("pPeople").textContent = paxText((d.adults || 0) + (d.kids || 0));
+  const ppl = (d.adults || 0) + (d.kids || 0);
+  $("pPeople").textContent = ppl ? paxText(ppl) : "Family";
   $("pEvent").textContent = `${d.eventName}${d.eventDates ? " · " + d.eventDates : ""}`;
   $("pVenue").textContent = d.venue || "—";
   $("pAmt").textContent = rupees(d.amount);
