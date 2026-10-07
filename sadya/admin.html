@@ -137,9 +137,9 @@
     </div>
     <div class="stats">
       <div class="stat"><b id="stFam">0</b><span>Families</span></div>
-      <div class="stat"><b id="stPpl">0</b><span>Guests booked</span></div>
+      <div class="stat"><b id="stPpl">0</b><span id="stPplL">Guests booked</span></div>
       <div class="stat"><b id="stIn">0</b><span>Checked in</span></div>
-      <div class="stat"><b id="stLeft">0</b><span>Yet to arrive</span></div>
+      <div class="stat"><b id="stLeft">0</b><span id="stLeftL">Yet to arrive</span></div>
     </div>
     <div class="card" id="slotCard" style="padding:12px 14px">
       <div class="muted" style="margin-bottom:4px">By slot · <span style="color:var(--leaf);font-weight:700">■</span> checked in <span style="color:var(--gold);font-weight:700">■</span> booked</div>
@@ -312,7 +312,16 @@ function renderStats() {
     fam++; ppl += p; inn += c;
     if (per[r.slotId]) { per[r.slotId].booked += p; per[r.slotId].in += c; }
   });
-  $("stFam").textContent = fam; $("stPpl").textContent = ppl; $("stIn").textContent = inn; $("stLeft").textContent = ppl - inn;
+  const family = (S.event.pricing || {}).mode !== "perHead";
+  if (family) {
+    // Family passes have no head count: show families arrived / not yet arrived
+    let came = 0; S.regs.forEach((r) => { if ((r.checkedInAdults || 0) + (r.checkedInKids || 0) > 0) came++; });
+    $("stPplL").textContent = "Families arrived"; $("stLeftL").textContent = "Families yet to come";
+    $("stFam").textContent = fam; $("stPpl").textContent = came; $("stIn").textContent = inn; $("stLeft").textContent = fam - came;
+  } else {
+    $("stPplL").textContent = "Guests booked"; $("stLeftL").textContent = "Yet to arrive";
+    $("stFam").textContent = fam; $("stPpl").textContent = ppl; $("stIn").textContent = inn; $("stLeft").textContent = Math.max(0, ppl - inn);
+  }
   $("slotStats").innerHTML = (S.event.slots || []).map((s) => {
     const v = per[s.id]; const cap = s.capacity || 1;
     return `<div class="ss"><span>${esc(s.label)}</span>
@@ -445,7 +454,7 @@ function renderGuest() {
     ${!paid ? `<div class="msg err">Payment not confirmed. Do not admit yet.</div>
       ${(r.orderId || r.paymentLinkId) ? `<button class="btn ghost block" id="gCheck" type="button">Check with Razorpay</button>` : ""}` : `
     <div class="grid">
-      <div><b>${open ? "—" : booked}</b><span>${open ? "Members not given" : "Total pax"}</span></div>
+      <div><b>${open ? "—" : booked}</b><span>${open ? "Family pass" : "Total pax"}</span></div>
       <div><b>${inn}</b><span>Already in</span></div>
       <div><b>${open ? "—" : left}</b><span>Remaining</span></div>
     </div>
@@ -523,7 +532,7 @@ function renderSearch() {
   $("results").innerHTML = rows.length ? rows.map((r) => {
     const p = (r.adults || 0) + (r.kids || 0), c = (r.checkedInAdults || 0) + (r.checkedInKids || 0);
     return `<div class="item" data-ref="${esc(r.id)}"><div class="l"><b>${esc(r.name)}</b><small>${esc(r.id)} · Flat ${esc(r.flat)} · ${esc(r.slotLabel || "")}</small></div>
-      <div class="r">${c}/${p} in</div></div>`;
+      <div class="r">${p ? `${c}/${p}` : c} in</div></div>`;
   }).join("") : `<p class="muted">No matches.</p>`;
   $("results").querySelectorAll(".item").forEach((el) => el.addEventListener("click", () => openRef(el.dataset.ref, { search: true })));
 }
