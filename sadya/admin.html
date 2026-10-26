@@ -103,6 +103,15 @@
   .evbar label { font-weight: 700; color: var(--muted); }
   .evbar select { flex: 1; font: inherit; font-weight: 700; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
   .evtag { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: #f1e3b8; color: #1f4d2b; margin-top: 4px; }
+  .sizetbl { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .sizetbl th, .sizetbl td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+  .sizetbl th:first-child, .sizetbl td:first-child { text-align: left; }
+  .sizetbl th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .sizetbl tr.grp td { background: #f6efd9; color: var(--leaf); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; }
+  .sizetbl tr.tot td { font-weight: 700; border-bottom: 0; }
+  .items { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+  .items span { background: var(--gold-soft); color: var(--leaf); border-radius: 8px; padding: 5px 10px; font-weight: 700; font-size: 15px; }
+  .pricegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .stats { grid-template-columns: repeat(2, 1fr); } .ss { grid-template-columns: 96px 1fr 58px; } }
 </style>
 </head>
@@ -136,14 +145,18 @@
       <select id="evSel"></select>
     </div>
     <div class="stats">
-      <div class="stat"><b id="stFam">0</b><span>Families</span></div>
+      <div class="stat"><b id="stFam">0</b><span id="stFamL">Families</span></div>
       <div class="stat"><b id="stPpl">0</b><span id="stPplL">Guests booked</span></div>
-      <div class="stat"><b id="stIn">0</b><span>Checked in</span></div>
+      <div class="stat"><b id="stIn">0</b><span id="stInL">Checked in</span></div>
       <div class="stat"><b id="stLeft">0</b><span id="stLeftL">Yet to arrive</span></div>
     </div>
     <div class="card" id="slotCard" style="padding:12px 14px">
       <div class="muted" style="margin-bottom:4px">By slot · <span style="color:var(--leaf);font-weight:700">■</span> checked in <span style="color:var(--gold);font-weight:700">■</span> booked</div>
       <div id="slotStats" class="slotstats"></div>
+    </div>
+    <div class="card hidden" id="sizeCard" style="padding:12px 14px">
+      <div class="muted" style="margin-bottom:6px">Shirts by size (paid orders) — use this for the supplier order</div>
+      <div id="sizeStats"></div>
     </div>
 
     <nav class="tabs" role="tablist">
@@ -186,6 +199,15 @@
       <div class="toggle" style="margin-top:14px">
         <div><b>Mobile OTP for residents</b><div class="muted">Residents verify their number by SMS before registering. Switch off if SMS isn't arriving; they'll register without OTP.</div></div>
         <label class="switch"><input type="checkbox" id="otpToggle"><span></span></label>
+      </div>
+      <div id="shopBlock" class="hidden">
+        <label class="f">Price per shirt (₹)</label>
+        <div class="pricegrid">
+          <div><div class="muted">Adults</div><input id="prAdult" type="number" min="0" max="99999" inputmode="numeric"></div>
+          <div><div class="muted">Kids</div><input id="prKid" type="number" min="0" max="99999" inputmode="numeric"></div>
+        </div>
+        <div class="muted" style="margin-top:6px">The order page stays on "opens soon" until both prices are set. <span id="closeInfo"></span></div>
+        <button id="savePrice" class="btn ghost small" type="button" style="margin-top:10px">Save prices</button>
       </div>
       <div id="capsBlock">
         <label class="f">Seats per slot</label>
@@ -284,12 +306,19 @@ function selectEvent(id, relisten = true) {
   document.title = `${S.event.name} · Gate`;
   const hasSlots = (S.event.slots || []).length > 0;
   show($("slotCard"), hasSlots); show($("capsBlock"), hasSlots);
+  show($("sizeCard"), isShop()); show($("shopBlock"), isShop());
+  document.querySelector('nav.tabs button[data-tab="scan"]').textContent = isShop() ? "Hand over" : "Scan";
   S.current = null; show($("guest"), false);
   renderSettings();
   if (relisten) { if (S.unsub) S.unsub(); listen(); }
 }
 $("evSel").addEventListener("change", (e) => selectEvent(e.target.value));
 const evName = (id) => (S.config?.events?.[id]?.name) || id;
+// Shop events (Onam Shirt): pricing.mode "perItem"; `adults` holds the number of shirts on the order
+const isShop = (ev = S.event) => (ev?.pricing || {}).mode === "perItem";
+const isKidSize = (z) => String(z?.group || "").toLowerCase().startsWith("kid");
+function sizeName(ev, id) { const z = (ev?.sizes || []).find((x) => x.id === id); return z ? (isKidSize(z) ? `Kids ${z.label}` : z.label) : id; }
+function itemsList(r) { const ev = S.config?.events?.[r.eventId] || S.event; return Object.entries(r.items || {}).filter(([, n]) => n > 0).map(([id, n]) => `${n} × ${sizeName(ev, id)}`); }
 
 function listen() {
   const q = query(collection(db, "registrations"), where("eventId", "==", S.eventId), where("status", "==", "PAID"));
@@ -313,7 +342,12 @@ function renderStats() {
     if (per[r.slotId]) { per[r.slotId].booked += p; per[r.slotId].in += c; }
   });
   const family = (S.event.pricing || {}).mode !== "perHead";
-  if (family) {
+  $("stFamL").textContent = isShop() ? "Orders" : "Families"; $("stInL").textContent = isShop() ? "Shirts handed over" : "Checked in";
+  if (isShop()) {
+    $("stPplL").textContent = "Shirts ordered"; $("stLeftL").textContent = "Still to hand over";
+    $("stFam").textContent = fam; $("stPpl").textContent = ppl; $("stIn").textContent = inn; $("stLeft").textContent = Math.max(0, ppl - inn);
+    renderSizes();
+  } else if (family) {
     // Family passes have no head count: show families arrived / not yet arrived
     let came = 0; S.regs.forEach((r) => { if ((r.checkedInAdults || 0) + (r.checkedInKids || 0) > 0) came++; });
     $("stPplL").textContent = "Families arrived"; $("stLeftL").textContent = "Families yet to come";
@@ -328,6 +362,25 @@ function renderStats() {
       <span class="barw"><i style="width:${Math.min(100, v.booked / cap * 100)}%"></i><i class="in" style="width:${Math.min(100, v.in / cap * 100)}%"></i></span>
       <span class="n">${v.in}/${v.booked}/${cap}</span></div>`;
   }).join("");
+}
+
+function renderSizes() {
+  const sizes = S.event.sizes || [];
+  const ordered = {}; let amount = 0, done = 0;
+  S.regs.forEach((r) => {
+    Object.entries(r.items || {}).forEach(([id, n]) => (ordered[id] = (ordered[id] || 0) + n));
+    amount += r.amount || 0;
+    if ((r.adults || 0) > 0 && (r.checkedInAdults || 0) >= r.adults) done++;
+  });
+  let rows = "", group = null, tot = 0;
+  sizes.forEach((z) => {
+    if (z.group !== group) { group = z.group; rows += `<tr class="grp"><td colspan="2">${esc(group || "")}</td></tr>`; }
+    const n = ordered[z.id] || 0; tot += n;
+    rows += `<tr><td>${esc(z.label)}</td><td>${n}</td></tr>`;
+  });
+  $("sizeStats").innerHTML = `<table class="sizetbl"><tr><th>Size</th><th>Shirts</th></tr>${rows}
+    <tr class="tot"><td>Total</td><td>${tot}</td></tr></table>
+    <div class="muted" style="margin-top:6px">${rupees(amount)} collected · ${done} of ${S.regs.size} orders fully handed over</div>`;
 }
 
 // ================================================================ tabs
@@ -434,7 +487,8 @@ function renderGuest() {
   const done = paid && !open && leftA + leftK === 0;
   const booked = bookedA + bookedK, inn = inA + inK, left = leftA + leftK;
   const otherEvent = r.eventId && r.eventId !== S.eventId;
-  const log = (r.checkinLog || []).map((l) => `${fmtTime(l.at)} · ${(l.adults || 0) + (l.kids || 0)} in · ${esc((l.by || "").split("@")[0])}`).join("<br>");
+  const shop = !!r.items;
+  const log = (r.checkinLog || []).map((l) => `${fmtTime(l.at)} · ${(l.adults || 0) + (l.kids || 0)} ${shop ? "handed over" : "in"} · ${esc((l.by || "").split("@")[0])}`).join("<br>");
   const cs = currentSlotId();
   const slotWarn = paid && cs && r.slotId && r.slotId !== cs && !done
     ? `<div class="msg warn">Booked for <b>${esc(r.slotLabel)}</b> — not the current slot.</div>` : "";
@@ -445,24 +499,25 @@ function renderGuest() {
       <div><div class="ref">${esc(r.id)}</div><div class="nm">${esc(r.name)}</div>
         <div class="muted">Flat ${esc(r.flat)} · <a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></div>
         <span class="evtag">${esc(evName(r.eventId))}</span>${r.imported ? ` <span class="evtag">Paid by UPI · old site</span>` : ""}</div>
-      <span class="badge ${!paid ? "pend" : done ? "done" : "paid"}">${!paid ? esc(r.status) : done ? "All in" : "Paid"}</span>
+      <span class="badge ${!paid ? "pend" : done ? "done" : "paid"}">${!paid ? esc(r.status) : done ? (shop ? "Collected" : "All in") : "Paid"}</span>
     </div>
+    ${shop ? `<div class="items">${itemsList(r).map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
     ${r.slotLabel ? `<div class="slot">${esc(r.slotLabel)}</div>` : ""}
     ${otherEvent ? `<div class="msg warn">This pass is for <b>${esc(evName(r.eventId))}</b>, not ${esc(S.event.name)}. Admit only if that event is the one happening now.</div>` : ""}
     ${S.unverified ? `<div class="msg warn">Opened without scanning the QR — confirm the name and flat with the guest before admitting.</div>` : ""}
     ${slotWarn}
-    ${!paid ? `<div class="msg err">Payment not confirmed. Do not admit yet.</div>
+    ${!paid ? `<div class="msg err">Payment not confirmed. ${shop ? "Do not hand over shirts yet." : "Do not admit yet."}</div>
       ${(r.orderId || r.paymentLinkId) ? `<button class="btn ghost block" id="gCheck" type="button">Check with Razorpay</button>` : ""}` : `
     <div class="grid">
-      <div><b>${open ? "—" : booked}</b><span>${open ? "Family pass" : "Total pax"}</span></div>
-      <div><b>${inn}</b><span>Already in</span></div>
+      <div><b>${open ? "—" : booked}</b><span>${shop ? "Shirts" : open ? "Family pass" : "Total pax"}</span></div>
+      <div><b>${inn}</b><span>${shop ? "Handed over" : "Already in"}</span></div>
       <div><b>${open ? "—" : left}</b><span>Remaining</span></div>
     </div>
-    ${done ? `<div class="msg warn">Everyone on this pass has already entered.</div>` : `
-    <label class="f">Guests arriving now</label>
+    ${done ? `<div class="msg warn">${shop ? "All shirts on this order have already been collected." : "Everyone on this pass has already entered."}</div>` : `
+    <label class="f">${shop ? "Shirts handing over now" : "Guests arriving now"}</label>
     <div class="stepper" data-k="n"><button type="button" data-d="-1">−</button><output>${S.arrive.n}</output><button type="button" data-d="1">+</button></div>
-    <button class="btn block" id="gIn" type="button" ${S.arrive.n ? "" : "disabled"}>Check in ${S.arrive.n}</button>`}
-    ${(r.checkinLog || []).length ? `<div class="log"><b>Entries</b><br>${log}</div>
+    <button class="btn block" id="gIn" type="button" ${S.arrive.n ? "" : "disabled"}>${shop ? "Hand over" : "Check in"} ${S.arrive.n}</button>`}
+    ${(r.checkinLog || []).length ? `<div class="log"><b>${shop ? "Handovers" : "Entries"}</b><br>${log}</div>
       <button class="btn ghost small" id="gUndo" type="button" style="margin-top:8px">Undo last entry</button>` : ""}`}
     <div id="gMsg" class="msg hidden"></div>`;
 
@@ -491,16 +546,16 @@ async function checkIn(a, k) {
       const d = snap.data();
       const na = (d.checkedInAdults || 0) + a, nk = (d.checkedInKids || 0) + k;
       const noCount = (d.adults || 0) + (d.kids || 0) === 0; // imported pass without a member count
-      if (!noCount && (na > d.adults || nk > d.kids)) throw new Error("More people than booked — someone may have just checked this pass in.");
+      if (!noCount && (na > d.adults || nk > d.kids)) throw new Error(d.items ? "More shirts than ordered — someone may have just handed this order over." : "More people than booked — someone may have just checked this pass in.");
       const log = [...(d.checkinLog || []), { at: Timestamp.now(), by: S.user.email, adults: a, kids: k }].slice(-50);
       tx.update(ref, { checkedInAdults: na, checkedInKids: nk, checkinLog: log, lastCheckinAt: serverTimestamp(), lastCheckinBy: S.user.email });
     });
     S.arrive = { n: 0 };
-    gMsg(`✓ ${a + k} checked in`, "ok");
+    gMsg(S.current?.items ? `✓ ${a + k} handed over` : `✓ ${a + k} checked in`, "ok");
   } catch (e) {
     console.error(e);
     gMsg(e.message.includes("offline") ? "No internet — couldn't save. Try again." : e.message, "err");
-    if (btn) { btn.disabled = false; btn.textContent = `Check in ${a + k}`; }
+    if (btn) { btn.disabled = false; btn.textContent = `${S.current?.items ? "Hand over" : "Check in"} ${a + k}`; }
   }
 }
 
@@ -531,8 +586,8 @@ function renderSearch() {
     .slice(0, 60);
   $("results").innerHTML = rows.length ? rows.map((r) => {
     const p = (r.adults || 0) + (r.kids || 0), c = (r.checkedInAdults || 0) + (r.checkedInKids || 0);
-    return `<div class="item" data-ref="${esc(r.id)}"><div class="l"><b>${esc(r.name)}</b><small>${esc(r.id)} · Flat ${esc(r.flat)} · ${esc(r.slotLabel || "")}</small></div>
-      <div class="r">${p ? `${c}/${p}` : c} in</div></div>`;
+    return `<div class="item" data-ref="${esc(r.id)}"><div class="l"><b>${esc(r.name)}</b><small>${esc(r.id)} · Flat ${esc(r.flat)} · ${esc(r.items ? itemsList(r).join(", ") : r.slotLabel || "")}</small></div>
+      <div class="r">${p ? `${c}/${p}` : c} ${r.items ? "given" : "in"}</div></div>`;
   }).join("") : `<p class="muted">No matches.</p>`;
   $("results").querySelectorAll(".item").forEach((el) => el.addEventListener("click", () => openRef(el.dataset.ref, { search: true })));
 }
@@ -560,6 +615,12 @@ async function loadPending() {
 function renderSettings() {
   $("openToggle").checked = !!S.event.open;
   $("otpToggle").checked = !!S.config.requireOtp;
+  if (isShop()) {
+    const p = S.event.pricing || {};
+    $("prAdult").value = p.adults || ""; $("prKid").value = p.kids || "";
+    const c = S.event.closesAt, t = c?.toMillis ? c.toMillis() : Date.parse(c || "");
+    $("closeInfo").textContent = Number.isFinite(t) ? `Orders close automatically on ${new Date(t).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}.` : "";
+  }
   $("caps").innerHTML = (S.event.slots || []).map((s, i) =>
     `<span>${esc(s.label)}</span><input type="number" min="0" max="999" value="${s.capacity}" data-i="${i}">`).join("");
 }
@@ -585,6 +646,16 @@ $("saveCaps").addEventListener("click", async () => {
   catch (err) { setMsg(err.message, "err"); }
 });
 
+$("savePrice").addEventListener("click", async () => {
+  const a = Math.max(0, parseInt($("prAdult").value, 10) || 0), k = Math.max(0, parseInt($("prKid").value, 10) || 0);
+  if (!confirm(`Set shirt prices: adults ₹${a}, kids ₹${k}?${a && k ? " Orders open on the public page." : ""}`)) return;
+  try {
+    await updateDoc(doc(db, "config", "site"), { [`events.${S.eventId}.pricing.adults`]: a, [`events.${S.eventId}.pricing.kids`]: k });
+    S.event.pricing = { ...(S.event.pricing || {}), adults: a, kids: k };
+    setMsg(a && k ? "Prices saved. The order page is open." : "Prices saved. The order page shows \"opens soon\" until both prices are set.", "ok");
+  } catch (err) { setMsg(err.message, "err"); }
+});
+
 $("resyncBtn").addEventListener("click", async (e) => {
   const b = e.target; b.disabled = true; b.innerHTML = '<span class="spinner"></span>Syncing…';
   try { const r = await call("resyncSheet")({ eventId: S.eventId }); setMsg(`Sent ${r.data.sent} registrations to the Sheet.`, "ok"); }
@@ -593,6 +664,18 @@ $("resyncBtn").addEventListener("click", async (e) => {
 });
 
 $("exportBtn").addEventListener("click", () => {
+  if (isShop()) {
+    const sizes = S.event.sizes || [];
+    const head = ["RefId", "Name", "Phone", "Flat", "Email", "Items", ...sizes.map((z) => sizeName(S.event, z.id)), "Shirts", "Amount", "Payment ID", "Handed over"];
+    const rows = [...S.regs.values()].sort((a, b) => a.id.localeCompare(b.id)).map((r) =>
+      [r.id, r.name, r.phone, r.flat, r.email, itemsList(r).join(", "), ...sizes.map((z) => (r.items || {})[z.id] || 0), r.adults || 0, r.amount, r.paymentId, r.checkedInAdults || 0]);
+    const csv = [head, ...rows].map((row) => row.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `${S.eventId}-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    return;
+  }
   const head = ["RefId", "Name", "Phone", "Flat", "Email", "Adults", "Kids", "Slot", "Amount", "Payment ID", "Checked In Adults", "Checked In Kids"];
   const rows = [...S.regs.values()].sort((a, b) => a.id.localeCompare(b.id)).map((r) =>
     [r.id, r.name, r.phone, r.flat, r.email, r.adults, r.kids, r.slotLabel, r.amount, r.paymentId, r.checkedInAdults || 0, r.checkedInKids || 0]);
