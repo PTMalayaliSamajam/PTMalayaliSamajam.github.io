@@ -105,19 +105,29 @@
   .slot.disabled .left { color: var(--danger); }
 
   .sizes { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: hidden; margin-top: 6px; }
-  .sizes .grp { background: #f6efd9; color: var(--leaf); font-weight: 700; font-size: 13px; letter-spacing: .4px; text-transform: uppercase; padding: 7px 14px; }
-  .sizes .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px 8px 14px; border-top: 1px solid var(--line); }
+  .sizes .grp, .sizes .row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(var(--cols, 1), 100px); align-items: center; gap: 8px; padding: 8px 8px 8px 12px; }
+  .sizes .grp { background: #f6efd9; color: var(--leaf); font-weight: 700; font-size: 13px; letter-spacing: .4px; padding: 7px 8px 7px 12px; }
+  .sizes .grp .gn { text-transform: uppercase; }
+  .sizes .grp .sl { width: 100px; text-align: center; font-size: 12px; letter-spacing: 0; line-height: 1.25; }
+  .sizes .grp .sl small { display: block; font-weight: 600; color: var(--muted); }
+  .sizes .row { border-top: 1px solid var(--line); }
   .sizes .grp + .row { border-top: 0; }
-  .sizes .row .nm { font-weight: 700; }
+  .sizes .row .nm { font-weight: 700; white-space: nowrap; font-size: 15px; }
   .sizes .row .ch { display: block; font-size: 12.5px; color: var(--muted); font-weight: 500; }
   .sizes .row.has { background: #f1f7ef; }
-  .qty { display: flex; align-items: center; gap: 6px; flex: none; }
-  .qty button { width: 36px; height: 36px; border-radius: 8px; border: 0; background: var(--gold-soft); color: var(--leaf); font-size: 20px; font-weight: 700; cursor: pointer; }
+  .qty { display: flex; align-items: center; justify-content: space-between; gap: 4px; flex: none; width: 100px; }
+  .qty button { width: 32px; height: 36px; border-radius: 8px; border: 0; background: var(--gold-soft); color: var(--leaf); font-size: 20px; font-weight: 700; cursor: pointer; }
   .qty button:disabled { opacity: .35; cursor: default; }
   .qty output { min-width: 2ch; text-align: center; font-weight: 700; font-size: 18px; }
+  .qty.has output { color: var(--leaf); }
   .chartimg { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); margin-top: 10px; }
   .pass .items { list-style: none; padding: 0; margin: 4px 0 14px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .pass .items li { background: var(--gold-soft); color: var(--leaf); border-radius: 10px; padding: 6px 12px; font-weight: 700; }
+
+  .photo { margin: 18px 0 0; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .photo img { display: block; width: 100%; height: auto; max-height: 520px; object-fit: cover; object-position: top; }
+  .photo figcaption { padding: 10px 16px; font-size: 14px; color: var(--muted); }
+  .photo figcaption b { color: var(--leaf); }
 
   .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--line); }
   .total .calc { color: var(--muted); font-size: 14px; }
@@ -175,6 +185,12 @@
 
   <div id="loading" class="loading"><span class="spinner"></span>Loading…</div>
 
+  <!-- Shirt photo (events.<id>.photoUrl overrides /shirt/shirt.jpg) -->
+  <figure id="photoCard" class="photo hidden">
+    <img id="photoImg" alt="The Onam 2026 shirt" width="900" height="1061" loading="eager">
+    <figcaption id="photoCap"></figcaption>
+  </figure>
+
   <!-- Closed -->
   <section id="closedCard" class="card hidden">
     <h2 id="closedTitle">Shirt orders are closed</h2>
@@ -220,7 +236,7 @@
 
     <label class="f">Sizes &amp; quantity <span class="req">*</span></label>
     <div id="sizes" class="sizes"></div>
-    <div class="hint" id="sizeNote">Add as many shirts as your family needs, in any mix of sizes.</div>
+    <div class="hint" id="sizeNote">Add as many shirts as your family needs, in any mix of sizes and sleeves.</div>
     <p class="hint hidden" id="chartToggleRow"><button id="chartToggle" class="link" type="button">See size chart</button></p>
     <img id="chartImg" class="chartimg hidden" alt="Shirt size chart">
 
@@ -279,7 +295,7 @@
         <dt>Flat</dt><dd id="pFlat"></dd>
         <dt>Shirts</dt><dd id="pPeople"></dd>
         <dt>Item</dt><dd id="pEvent"></dd>
-        <dt>Collect at</dt><dd id="pVenue"></dd>
+        <dt>Collection</dt><dd id="pVenue"></dd>
         <dt>Paid</dt><dd id="pAmt"></dd>
         <dt>Payment ID</dt><dd id="pPay"></dd>
       </dl>
@@ -342,18 +358,25 @@ async function boot() {
   }
   const ev = state.event;
   $("evName").textContent = ev.name;
-  $("evDate").textContent = ev.dates;
+  // Deadline chip follows closesAt (set from the admin page), so it always matches when orders really close
+  const cl = ev.closesAt?.toMillis ? ev.closesAt.toMillis() : Date.parse(ev.closesAt || "");
+  $("evDate").textContent = Number.isFinite(cl)
+    ? "Order by " + new Date(cl).toLocaleString("en-IN", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" })
+    : ev.dates;
+  $("photoImg").src = ev.photoUrl || "/shirt/shirt.jpg";
+  $("photoImg").addEventListener("error", () => show($("photoCard"), false));
   if (ev.venue) $("evVenue").textContent = ev.venue;
   $("orgName").textContent = state.config.orgName || "";
   if (state.config.orgEmail) { $("orgMail").textContent = state.config.orgEmail; $("orgMail").href = "mailto:" + state.config.orgEmail; }
   $("evPrice").textContent = priceSet()
-    ? (samePrice() ? `${rupees(unitFor(sizeList()[0].id))} per shirt` : `From ${rupees(minPrice())} per shirt`)
+    ? (samePrice() ? `${rupees(minPrice())} per shirt` : `From ${rupees(minPrice())} per shirt`)
     : "Price coming soon";
   if (ev.sizeChartUrl) { show($("chartToggleRow")); $("chartImg").src = ev.sizeChartUrl; }
   document.title = `${ev.name} · PTMS`;
 
   state.otp = !!state.config.requireOtp;
   show($("loading"), false);
+  show($("photoCard"));
   state.booted = true;
   if (await handlePaymentReturn()) return;
   showMain();
@@ -364,6 +387,8 @@ async function boot() {
 /** The landing page: registration form (or "closed"), plus lookup card when OTP is off. */
 function showMain() {
   show($("passCard"), false);
+  show($("photoCard"));
+  $("photoCap").innerHTML = priceSet() ? `<b>${samePrice() ? rupees(minPrice()) : "From " + rupees(minPrice())}</b> per shirt · ${esc(sleeveList().map((v) => v.label).join(" or "))}` : "Price coming soon";
   const open = isOpen();
   show($("findCard"), !state.otp || !open); // closed: lookup by mobile + flat + email
   if (open) { show($("closedCard"), false); show($("regForm")); renderSizes(); updateTotal(); renderPhone(); }
@@ -503,19 +528,32 @@ const DEFAULT_SIZES = [
   { id: "L", label: "L", group: "Adults" }, { id: "XL", label: "XL", group: "Adults" },
   { id: "XXL", label: "XXL", group: "Adults" }, { id: "3XL", label: "3XL", group: "Adults" },
 ];
-const sizeList = () => (state.event.sizes && state.event.sizes.length ? state.event.sizes : DEFAULT_SIZES);
-const sizeById = (id) => sizeList().find((z) => z.id === id);
-const sizeName = (z) => (z.group && z.group.toLowerCase().startsWith("kid") ? `Kids ${z.label}` : z.label);
-/** Price per shirt: per-size override, else the group price (kids/adults), else the common price. */
-function unitFor(id) {
+const allSizes = () => (state.event.sizes && state.event.sizes.length ? state.event.sizes : DEFAULT_SIZES);
+// Kids / Adults can be switched off in the admin page (events.<id>.hiddenGroups)
+const sizeList = () => allSizes().filter((z) => !(state.event.hiddenGroups || []).includes(z.group));
+const sizeById = (id) => allSizes().find((z) => z.id === id);
+const isKid = (z) => String(z?.group || "").toLowerCase().startsWith("kid");
+const sizeName = (z) => (isKid(z) ? `Kids ${z.label}` : z.label);
+// Sleeves: Half / Full, each switchable in the admin page (events.<id>.hiddenSleeves). Keep in step with functions/index.js
+const DEFAULT_SLEEVES = [{ id: "H", label: "Half sleeve", short: "Half" }, { id: "F", label: "Full sleeve", short: "Full" }];
+const allSleeves = () => (state.event.sleeves && state.event.sleeves.length ? state.event.sleeves : DEFAULT_SLEEVES);
+const sleeveList = () => allSleeves().filter((v) => !(state.event.hiddenSleeves || []).includes(v.id));
+const sleeveById = (id) => allSleeves().find((v) => v.id === id);
+/** Order line key: "<size>_<sleeve>", e.g. "M_F". Older orders may have just "<size>". */
+const keyOf = (sizeId, sleeveId) => `${sizeId}_${sleeveId}`;
+const splitKey = (k) => { const [z, v] = String(k).split("_"); return [z, v || ""]; };
+/** Price for one size + sleeve: per-line override, else the group price for that sleeve. Full sleeve uses adultsFull / kidsFull. */
+function unitFor(key) {
   const p = state.event.pricing || {};
-  const z = sizeById(id) || {};
-  const g = (z.group || "").toLowerCase().startsWith("kid") ? p.kids : p.adults;
-  return Number((p.bySize || {})[id] ?? g ?? p.perShirt ?? 0) || 0;
+  const [sid, vid] = splitKey(key);
+  const z = sizeById(sid) || {};
+  const g = vid === "F" ? (isKid(z) ? p.kidsFull : p.adultsFull) : (isKid(z) ? p.kids : p.adults);
+  return Number((p.bySize || {})[key] ?? g ?? 0) || 0;
 }
-const priceSet = () => sizeList().every((z) => unitFor(z.id) > 0);
-const minPrice = () => Math.min(...sizeList().map((z) => unitFor(z.id)));
-const samePrice = () => new Set(sizeList().map((z) => unitFor(z.id))).size === 1;
+const saleKeys = () => sizeList().flatMap((z) => sleeveList().map((v) => keyOf(z.id, v.id)));
+const priceSet = () => saleKeys().length > 0 && saleKeys().every((k) => unitFor(k) > 0);
+const minPrice = () => Math.min(...saleKeys().map(unitFor));
+const samePrice = () => new Set(saleKeys().map(unitFor)).size === 1;
 function isOpen() {
   const ev = state.event;
   if (!ev.open || !priceSet()) return false;
@@ -524,34 +562,45 @@ function isOpen() {
 }
 const maxPerSize = () => state.event.maxPerSize || 10;
 const totalQty = () => Object.values(state.qty).reduce((a, b) => a + b, 0);
-const price = () => Object.entries(state.qty).reduce((a, [id, n]) => a + n * unitFor(id), 0);
+const price = () => Object.entries(state.qty).reduce((a, [k, n]) => a + n * unitFor(k), 0);
 const shirtText = (n) => `${n} ${n === 1 ? "shirt" : "shirts"}`;
-const itemsText = (items) => Object.entries(items || {}).filter(([, n]) => n > 0)
-  .map(([id, n]) => `${n} × ${sizeById(id) ? sizeName(sizeById(id)) : id}`);
+function lineName(k) {
+  const [sid, vid] = splitKey(k);
+  const z = sizeById(sid), v = sleeveById(vid);
+  return `${z ? sizeName(z) : sid}${v ? " · " + v.label : ""}`;
+}
+const itemsText = (items) => Object.entries(items || {}).filter(([, n]) => n > 0).map(([k, n]) => `${n} × ${lineName(k)}`);
 
 function renderSizes() {
   const box = $("sizes");
+  const sleeves = sleeveList();
+  box.style.setProperty("--cols", sleeves.length);
   box.innerHTML = "";
   let lastGroup = null;
-  const showEach = !samePrice();
   sizeList().forEach((z) => {
-    if (z.group && z.group !== lastGroup) {
+    if (z.group !== lastGroup) {
       lastGroup = z.group;
-      const g = document.createElement("div"); g.className = "grp"; g.textContent = z.group; box.appendChild(g);
+      // Group header doubles as the column header: "KIDS | Half sleeve ₹350 | Full sleeve ₹400"
+      const g = document.createElement("div"); g.className = "grp";
+      g.innerHTML = `<span class="gn"></span>` + sleeves.map((v) => `<span class="sl">${v.label}<small>${rupees(unitFor(keyOf(z.id, v.id)))}</small></span>`).join("");
+      g.querySelector(".gn").textContent = isKid(z) ? `${z.group} (age)` : (z.group || "");
+      box.appendChild(g);
     }
-    const n = state.qty[z.id] || 0;
     const row = document.createElement("div");
-    row.className = "row" + (n ? " has" : "");
-    const extra = [z.chest ? `Chest ${z.chest}` : "", showEach ? rupees(unitFor(z.id)) : ""].filter(Boolean).join(" · ");
-    row.innerHTML = `<span class="nm"></span>
-      <span class="qty"><button type="button" data-id="${z.id}" data-d="-1" aria-label="One fewer" ${n ? "" : "disabled"}>−</button>
-      <output>${n}</output>
-      <button type="button" data-id="${z.id}" data-d="1" aria-label="One more" ${n >= maxPerSize() ? "disabled" : ""}>+</button></span>`;
-    row.querySelector(".nm").textContent = z.label;
-    if (extra) { const c = document.createElement("span"); c.className = "ch"; c.textContent = extra; row.querySelector(".nm").appendChild(c); }
+    const any = sleeves.some((v) => state.qty[keyOf(z.id, v.id)]);
+    row.className = "row" + (any ? " has" : "");
+    row.innerHTML = `<span class="nm"></span>` + sleeves.map((v) => {
+      const k = keyOf(z.id, v.id), n = state.qty[k] || 0;
+      return `<span class="qty${n ? " has" : ""}"><button type="button" data-k="${k}" data-d="-1" aria-label="One fewer ${esc(z.label)} ${v.label}" ${n ? "" : "disabled"}>−</button>
+        <output>${n}</output>
+        <button type="button" data-k="${k}" data-d="1" aria-label="One more ${esc(z.label)} ${v.label}" ${n >= maxPerSize() ? "disabled" : ""}>+</button></span>`;
+    }).join("");
+    row.querySelector(".nm").textContent = isKid(z) ? z.label.replace(/\s*yrs?$/i, "") : z.label; // "2–3" under "KIDS (AGE)" keeps rows on one line
+    if (z.chest) { const c = document.createElement("span"); c.className = "ch"; c.textContent = `Chest ${z.chest}`; row.querySelector(".nm").appendChild(c); }
     box.appendChild(row);
   });
 }
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function updateTotal() {
   const n = totalQty(), total = price();
@@ -564,9 +613,9 @@ function updateTotal() {
 
 $("sizes").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b || b.disabled) return;
-  const id = b.dataset.id;
-  const n = Math.max(0, Math.min(maxPerSize(), (state.qty[id] || 0) + Number(b.dataset.d)));
-  if (n) state.qty[id] = n; else delete state.qty[id];
+  const k = b.dataset.k;
+  const n = Math.max(0, Math.min(maxPerSize(), (state.qty[k] || 0) + Number(b.dataset.d)));
+  if (n) state.qty[k] = n; else delete state.qty[k];
   renderSizes(); updateTotal();
 });
 $("chartToggle").addEventListener("click", () => {
@@ -583,7 +632,7 @@ function readForm() {
     phone: state.otp ? state.phone : tenDigits($("phone").value),
     flat: $("flat").value.trim(),
     email: $("email").value.trim(),
-    items: { ...state.qty },  // { sizeId: quantity } — the server prices this itself
+    items: { ...state.qty },  // { "<size>_<sleeve>": quantity } — the server prices this itself
   };
   if (v.name.length < 2) return [null, "Please enter your name."];
   if (state.otp && !state.phone) return [null, "Please verify your mobile number — tap Verify next to it."];
@@ -608,7 +657,7 @@ function restoreDraft() {
   $("flat").value = v.flat || "";
   $("email").value = v.email || "";
   state.qty = {};
-  Object.entries(v.items || {}).forEach(([id, n]) => { if (sizeById(id) && n > 0) state.qty[id] = Math.min(maxPerSize(), n); });
+  Object.entries(v.items || {}).forEach(([k, n]) => { if (saleKeys().includes(k) && n > 0) state.qty[k] = Math.min(maxPerSize(), n); });
   renderSizes(); updateTotal();
 }
 
@@ -772,7 +821,7 @@ function showPass(d) {
   $("pAmt").textContent = rupees(d.amount);
   $("pPay").textContent = d.paymentId || "—";
   show($("moreBtn"), isOpen());
-  ["regForm", "findCard", "closedCard"].forEach((id) => show($(id), false));
+  ["regForm", "findCard", "closedCard", "photoCard"].forEach((id) => show($(id), false));
   show($("passCard"));
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
