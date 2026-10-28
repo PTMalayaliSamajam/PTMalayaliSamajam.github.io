@@ -201,13 +201,36 @@
         <label class="switch"><input type="checkbox" id="otpToggle"><span></span></label>
       </div>
       <div id="shopBlock" class="hidden">
+        <div class="toggle" style="margin-top:14px">
+          <div><b>Kids sizes on sale</b><div class="muted">2–3 yrs to 12–13 yrs</div></div>
+          <label class="switch"><input type="checkbox" id="grpKids" data-group="Kids"><span></span></label>
+        </div>
+        <div class="toggle" style="margin-top:14px">
+          <div><b>Adult sizes on sale</b><div class="muted">S to 3XL</div></div>
+          <label class="switch"><input type="checkbox" id="grpAdults" data-group="Adults"><span></span></label>
+        </div>
+        <div class="toggle" style="margin-top:14px">
+          <div><b>Half sleeve on sale</b></div>
+          <label class="switch"><input type="checkbox" id="slvH" data-sleeve="H"><span></span></label>
+        </div>
+        <div class="toggle" style="margin-top:14px">
+          <div><b>Full sleeve on sale</b></div>
+          <label class="switch"><input type="checkbox" id="slvF" data-sleeve="F"><span></span></label>
+        </div>
         <label class="f">Price per shirt (₹)</label>
         <div class="pricegrid">
-          <div><div class="muted">Adults</div><input id="prAdult" type="number" min="0" max="99999" inputmode="numeric"></div>
-          <div><div class="muted">Kids</div><input id="prKid" type="number" min="0" max="99999" inputmode="numeric"></div>
+          <div><div class="muted">Adults · Half sleeve</div><input id="prAdult" type="number" min="0" max="99999" inputmode="numeric"></div>
+          <div><div class="muted">Adults · Full sleeve</div><input id="prAdultF" type="number" min="0" max="99999" inputmode="numeric"></div>
+          <div><div class="muted">Kids · Half sleeve</div><input id="prKid" type="number" min="0" max="99999" inputmode="numeric"></div>
+          <div><div class="muted">Kids · Full sleeve</div><input id="prKidF" type="number" min="0" max="99999" inputmode="numeric"></div>
         </div>
-        <div class="muted" style="margin-top:6px">The order page stays on "opens soon" until both prices are set. <span id="closeInfo"></span></div>
+        <div class="muted" style="margin-top:4px">Only the prices for sizes and sleeves on sale are needed.</div>
+        <div class="muted" style="margin-top:6px">The order page stays on "opens soon" until everything on sale has a price.</div>
         <button id="savePrice" class="btn ghost small" type="button" style="margin-top:10px">Save prices</button>
+        <label class="f" for="closeAt">Orders close on (IST)</label>
+        <input id="closeAt" type="datetime-local" style="width:100%;font:inherit;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#fff">
+        <div class="muted" style="margin-top:6px" id="closeInfo"></div>
+        <button id="saveClose" class="btn ghost small" type="button" style="margin-top:10px">Save closing time</button>
       </div>
       <div id="capsBlock">
         <label class="f">Seats per slot</label>
@@ -317,7 +340,15 @@ const evName = (id) => (S.config?.events?.[id]?.name) || id;
 // Shop events (Onam Shirt): pricing.mode "perItem"; `adults` holds the number of shirts on the order
 const isShop = (ev = S.event) => (ev?.pricing || {}).mode === "perItem";
 const isKidSize = (z) => String(z?.group || "").toLowerCase().startsWith("kid");
-function sizeName(ev, id) { const z = (ev?.sizes || []).find((x) => x.id === id); return z ? (isKidSize(z) ? `Kids ${z.label}` : z.label) : id; }
+// Order lines are keyed "<size>_<sleeve>" (e.g. "M_F"); older orders may hold just "<size>"
+const DEFAULT_SLEEVES = [{ id: "H", label: "Half sleeve", short: "Half" }, { id: "F", label: "Full sleeve", short: "Full" }];
+const sleevesOf = (ev) => (ev?.sleeves && ev.sleeves.length ? ev.sleeves : DEFAULT_SLEEVES);
+const splitKey = (k) => { const [z, v] = String(k).split("_"); return [z, v || ""]; };
+function sizeName(ev, key) {
+  const [id, vid] = splitKey(key);
+  const z = (ev?.sizes || []).find((x) => x.id === id), v = sleevesOf(ev).find((x) => x.id === vid);
+  return (z ? (isKidSize(z) ? `Kids ${z.label}` : z.label) : id) + (v ? ` · ${v.label}` : "");
+}
 function itemsList(r) { const ev = S.config?.events?.[r.eventId] || S.event; return Object.entries(r.items || {}).filter(([, n]) => n > 0).map(([id, n]) => `${n} × ${sizeName(ev, id)}`); }
 
 function listen() {
@@ -365,21 +396,25 @@ function renderStats() {
 }
 
 function renderSizes() {
-  const sizes = S.event.sizes || [];
+  const sizes = S.event.sizes || [], sleeves = sleevesOf(S.event);
   const ordered = {}; let amount = 0, done = 0;
   S.regs.forEach((r) => {
-    Object.entries(r.items || {}).forEach(([id, n]) => (ordered[id] = (ordered[id] || 0) + n));
+    Object.entries(r.items || {}).forEach(([k, n]) => (ordered[k] = (ordered[k] || 0) + n));
     amount += r.amount || 0;
     if ((r.adults || 0) > 0 && (r.checkedInAdults || 0) >= r.adults) done++;
   });
-  let rows = "", group = null, tot = 0;
+  const colTot = sleeves.map(() => 0);
+  let rows = "", group = null, tot = 0, other = 0;
   sizes.forEach((z) => {
-    if (z.group !== group) { group = z.group; rows += `<tr class="grp"><td colspan="2">${esc(group || "")}</td></tr>`; }
-    const n = ordered[z.id] || 0; tot += n;
-    rows += `<tr><td>${esc(z.label)}</td><td>${n}</td></tr>`;
+    if (z.group !== group) { group = z.group; rows += `<tr class="grp"><td colspan="${sleeves.length + 2}">${esc(group || "")}</td></tr>`; }
+    const cells = sleeves.map((v, i) => { const n = ordered[`${z.id}_${v.id}`] || 0; colTot[i] += n; return n; });
+    const old = ordered[z.id] || 0; other += old; // orders placed before sleeves existed
+    const rowTot = cells.reduce((a, b) => a + b, 0) + old; tot += rowTot;
+    rows += `<tr><td>${esc(z.label)}</td>${cells.map((n) => `<td>${n || "·"}</td>`).join("")}<td><b>${rowTot}</b></td></tr>`;
   });
-  $("sizeStats").innerHTML = `<table class="sizetbl"><tr><th>Size</th><th>Shirts</th></tr>${rows}
-    <tr class="tot"><td>Total</td><td>${tot}</td></tr></table>
+  $("sizeStats").innerHTML = `<table class="sizetbl"><tr><th>Size</th>${sleeves.map((v) => `<th>${esc(v.short || v.label)}</th>`).join("")}<th>Total</th></tr>${rows}
+    <tr class="tot"><td>Total</td>${colTot.map((n) => `<td>${n}</td>`).join("")}<td>${tot}</td></tr></table>
+    ${other ? `<div class="muted" style="margin-top:6px">${other} shirt(s) were ordered before the sleeve option existed — check those orders.</div>` : ""}
     <div class="muted" style="margin-top:6px">${rupees(amount)} collected · ${done} of ${S.regs.size} orders fully handed over</div>`;
 }
 
@@ -618,8 +653,13 @@ function renderSettings() {
   if (isShop()) {
     const p = S.event.pricing || {};
     $("prAdult").value = p.adults || ""; $("prKid").value = p.kids || "";
+    $("prAdultF").value = p.adultsFull || ""; $("prKidF").value = p.kidsFull || "";
+    const off = S.event.hiddenGroups || [], offS = S.event.hiddenSleeves || [];
+    $("grpKids").checked = !off.includes("Kids"); $("grpAdults").checked = !off.includes("Adults");
+    $("slvH").checked = !offS.includes("H"); $("slvF").checked = !offS.includes("F");
     const c = S.event.closesAt, t = c?.toMillis ? c.toMillis() : Date.parse(c || "");
-    $("closeInfo").textContent = Number.isFinite(t) ? `Orders close automatically on ${new Date(t).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}.` : "";
+    $("closeInfo").textContent = Number.isFinite(t) ? `${t > Date.now() ? "Orders close automatically on" : "Orders closed on"} ${istText(t)}.` : "No closing time set.";
+    $("closeAt").value = Number.isFinite(t) ? new Date(t + 5.5 * 3600e3).toISOString().slice(0, 16) : ""; // shown in IST
   }
   $("caps").innerHTML = (S.event.slots || []).map((s, i) =>
     `<span>${esc(s.label)}</span><input type="number" min="0" max="999" value="${s.capacity}" data-i="${i}">`).join("");
@@ -646,15 +686,67 @@ $("saveCaps").addEventListener("click", async () => {
   catch (err) { setMsg(err.message, "err"); }
 });
 
-$("savePrice").addEventListener("click", async () => {
-  const a = Math.max(0, parseInt($("prAdult").value, 10) || 0), k = Math.max(0, parseInt($("prKid").value, 10) || 0);
-  if (!confirm(`Set shirt prices: adults ₹${a}, kids ₹${k}?${a && k ? " Orders open on the public page." : ""}`)) return;
+/** Open on the public page only if every group × sleeve on sale has a price (same rule as shirt/index.html). */
+function shopReady(ev) {
+  const off = ev.hiddenGroups || [], offS = ev.hiddenSleeves || [], p = ev.pricing || {};
+  const groups = [...new Set((ev.sizes || []).map((z) => z.group))].filter((g) => !off.includes(g));
+  const sleeves = sleevesOf(ev).map((v) => v.id).filter((v) => !offS.includes(v));
+  const priceOf = (g, v) => (g.toLowerCase().startsWith("kid") ? (v === "F" ? p.kidsFull : p.kids) : (v === "F" ? p.adultsFull : p.adults));
+  return groups.length > 0 && sleeves.length > 0 && groups.every((g) => sleeves.every((v) => priceOf(g, v) > 0));
+}
+const istText = (t) => new Date(t).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
+$("saveClose").addEventListener("click", async () => {
+  const v = $("closeAt").value; // "2026-10-30T23:59", read as IST
+  if (!v) return setMsg("Pick a date and time first.", "err");
+  const iso = `${v}:00+05:30`, t = Date.parse(iso);
+  if (!Number.isFinite(t)) return setMsg("That date doesn't look right.", "err");
+  if (!confirm(`Orders close on ${istText(t)}?${t <= Date.now() ? "\n\nThis is in the past, so orders close straight away." : ""}`)) return;
+  const dates = "Order by " + new Date(t).toLocaleString("en-IN", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Kolkata" });
   try {
-    await updateDoc(doc(db, "config", "site"), { [`events.${S.eventId}.pricing.adults`]: a, [`events.${S.eventId}.pricing.kids`]: k });
-    S.event.pricing = { ...(S.event.pricing || {}), adults: a, kids: k };
-    setMsg(a && k ? "Prices saved. The order page is open." : "Prices saved. The order page shows \"opens soon\" until both prices are set.", "ok");
+    await updateDoc(doc(db, "config", "site"), { [`events.${S.eventId}.closesAt`]: iso, [`events.${S.eventId}.dates`]: dates });
+    S.event.closesAt = iso; S.event.dates = dates; renderSettings();
+    setMsg(`Closing time saved: ${istText(t)}.`, "ok");
   } catch (err) { setMsg(err.message, "err"); }
 });
+
+$("savePrice").addEventListener("click", async () => {
+  const num = (id) => Math.max(0, parseInt($(id).value, 10) || 0);
+  const pr = { adults: num("prAdult"), adultsFull: num("prAdultF"), kids: num("prKid"), kidsFull: num("prKidF") };
+  const next = { ...S.event, pricing: { ...(S.event.pricing || {}), ...pr } };
+  const list = `Adults: half ₹${pr.adults}, full ₹${pr.adultsFull}\nKids: half ₹${pr.kids}, full ₹${pr.kidsFull}`;
+  if (!confirm(`Set shirt prices?\n${list}${shopReady(next) ? "\n\nOrders open on the public page." : ""}`)) return;
+  try {
+    await updateDoc(doc(db, "config", "site"), Object.fromEntries(Object.entries(pr).map(([k, v]) => [`events.${S.eventId}.pricing.${k}`, v])));
+    S.event.pricing = next.pricing;
+    setMsg(shopReady(S.event) ? "Prices saved. The order page is open." : "Prices saved. The order page shows \"opens soon\" until everything on sale has a price.", "ok");
+  } catch (err) { setMsg(err.message, "err"); }
+});
+
+["slvH", "slvF"].forEach((id) => $(id).addEventListener("change", async (e) => {
+  const v = e.target.dataset.sleeve, on = e.target.checked;
+  const label = v === "F" ? "Full sleeve" : "Half sleeve";
+  if (!confirm(on ? `Put ${label} shirts on sale?` : `Stop selling ${label} shirts? They disappear from the order page; existing orders are not affected.`)) { e.target.checked = !on; return; }
+  const off = (S.event.hiddenSleeves || []).filter((x) => x !== v);
+  if (!on) off.push(v);
+  try {
+    await updateDoc(doc(db, "config", "site"), { [`events.${S.eventId}.hiddenSleeves`]: off });
+    S.event.hiddenSleeves = off;
+    setMsg(`${label} ${on ? "is on sale" : "is off the order page"}.${shopReady(S.event) ? "" : " The page shows \"opens soon\" until everything on sale has a price."}`, "ok");
+  } catch (err) { e.target.checked = !on; setMsg(err.message, "err"); }
+}));
+
+["grpKids", "grpAdults"].forEach((id) => $(id).addEventListener("change", async (e) => {
+  const g = e.target.dataset.group, on = e.target.checked;
+  const label = g === "Kids" ? "Kids" : "Adult";
+  if (!confirm(on ? `Put ${label} sizes on sale on the order page?` : `Stop selling ${label} sizes? They disappear from the order page; existing orders are not affected.`)) { e.target.checked = !on; return; }
+  const off = (S.event.hiddenGroups || []).filter((x) => x !== g);
+  if (!on) off.push(g);
+  try {
+    await updateDoc(doc(db, "config", "site"), { [`events.${S.eventId}.hiddenGroups`]: off });
+    S.event.hiddenGroups = off;
+    setMsg(`${label} sizes ${on ? "are on sale" : "are off the order page"}.${off.length === 2 ? " No sizes are on sale, so the page shows \"opens soon\"." : ""}`, "ok");
+  } catch (err) { e.target.checked = !on; setMsg(err.message, "err"); }
+}));
 
 $("resyncBtn").addEventListener("click", async (e) => {
   const b = e.target; b.disabled = true; b.innerHTML = '<span class="spinner"></span>Syncing…';
@@ -665,10 +757,10 @@ $("resyncBtn").addEventListener("click", async (e) => {
 
 $("exportBtn").addEventListener("click", () => {
   if (isShop()) {
-    const sizes = S.event.sizes || [];
-    const head = ["RefId", "Name", "Phone", "Flat", "Email", "Items", ...sizes.map((z) => sizeName(S.event, z.id)), "Shirts", "Amount", "Payment ID", "Handed over"];
+    const keys = (S.event.sizes || []).flatMap((z) => sleevesOf(S.event).map((v) => `${z.id}_${v.id}`));
+    const head = ["RefId", "Name", "Phone", "Flat", "Email", "Items", ...keys.map((k) => sizeName(S.event, k)), "Shirts", "Amount", "Payment ID", "Handed over"];
     const rows = [...S.regs.values()].sort((a, b) => a.id.localeCompare(b.id)).map((r) =>
-      [r.id, r.name, r.phone, r.flat, r.email, itemsList(r).join(", "), ...sizes.map((z) => (r.items || {})[z.id] || 0), r.adults || 0, r.amount, r.paymentId, r.checkedInAdults || 0]);
+      [r.id, r.name, r.phone, r.flat, r.email, itemsList(r).join(", "), ...keys.map((k) => (r.items || {})[k] || 0), r.adults || 0, r.amount, r.paymentId, r.checkedInAdults || 0]);
     const csv = [head, ...rows].map((row) => row.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
