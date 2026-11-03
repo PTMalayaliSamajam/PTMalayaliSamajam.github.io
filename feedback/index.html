@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4d2b">
+<meta name="description" content="Share your feedback on Nammude Onam 2026 — Prestige Tranquility Malayali Samajam">
+<title>Onam 2026 Feedback · PTMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Chettan+2:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== CONFIG lives in the script block below ===== */
+  :root{
+    --cream:#f7f5ee; --card:#ffffff; --ink:#1d2a20; --muted:#5f6b60;
+    --gold:#c99a2e; --gold-soft:#f5ead0; --green:#1f4d2b; --green-soft:#e6efe7;
+    --maroon:#1f4d2b; --line:#e3e6dc; --focus:#c99a2e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px 48px}
+  .hero{background:var(--green);color:#fff;text-align:center;padding:28px 16px 30px;margin:0 -16px 20px;border-bottom:4px solid var(--gold)}
+  .hero img{width:96px;height:auto;display:block;margin:0 auto 10px}
+  .hero h1{font-family:"Baloo Chettan 2",serif;font-size:32px;line-height:1.15;margin:0 0 4px;color:#fff}
+  .hero .org{margin:0;opacity:.85;font-size:15px}
+  .hero .meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-top:12px;font-size:14px}
+  .hero .meta span{background:rgba(255,255,255,.12);padding:4px 12px;border-radius:99px}
+  .intro{margin:0 0 16px;color:var(--muted);text-align:center}
+  @media (min-width:672px){.hero{margin:0 0 20px;border-radius:0 0 18px 18px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(60,40,10,.04)}
+  .card h2{font-family:"Baloo Chettan 2",serif;font-size:21px;margin:0 0 4px;color:var(--green)}
+  .card .sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .q{margin:18px 0 0}
+  .q:first-of-type{margin-top:0}
+  .q > label.title,.q > .title{display:block;font-weight:600;margin-bottom:8px}
+  .req{color:var(--maroon)}
+  .opts{display:grid;gap:8px}
+  .opt{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;transition:background .15s,border-color .15s}
+  .opt:hover{background:#fdfaf2}
+  .opt input{accent-color:var(--green);width:18px;height:18px;margin:0}
+  .opt:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+  textarea,input[type=text]{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink)}
+  textarea{min-height:88px;resize:vertical}
+  textarea:focus,input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  .stars{display:flex;gap:6px;flex-direction:row-reverse;justify-content:flex-end}
+  .stars input{position:absolute;opacity:0;pointer-events:none}
+  .stars label{font-size:34px;line-height:1;color:#ddd2b6;cursor:pointer;transition:color .1s}
+  .stars input:checked ~ label,.stars label:hover,.stars label:hover ~ label{color:var(--gold)}
+  .stars input:focus-visible + label{outline:2px solid var(--focus);border-radius:4px}
+  .grid-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .grp{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--maroon);background:var(--gold-soft);border-radius:8px;padding:6px 10px;margin:14px 0 4px}
+  .grp:first-child{margin-top:0}
+  .grp + .grid-row{border-top:0}
+  .grid-row .lbl{flex:1;font-size:15px}
+  .pills{display:flex;gap:4px}
+  .pills input{position:absolute;opacity:0;pointer-events:none}
+  .pills label{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;font-size:14px;cursor:pointer;color:var(--muted)}
+  .pills input:checked + label{background:var(--green);border-color:var(--green);color:#fff}
+  .pills input:focus-visible + label{outline:2px solid var(--focus)}
+  .scale-hint{font-size:13px;color:var(--muted);margin:-4px 0 6px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hidden{display:none}
+  .hp{position:absolute;left:-9999px}
+  button.submit{width:100%;font:600 17px Inter,sans-serif;background:var(--green);color:#fff;border:0;border-radius:12px;padding:15px;cursor:pointer}
+  button.submit:disabled{opacity:.6;cursor:wait}
+  .err{color:var(--maroon);font-size:14px;margin-top:10px;min-height:1em}
+  .done{text-align:center;padding:40px 20px}
+  .done .big{font-size:56px}
+  .done h2{color:var(--maroon);font-size:28px}
+  footer{text-align:center;color:var(--muted);font-size:13px;margin-top:24px}
+  @media (max-width:420px){
+    h1{font-size:28px}
+    .grid-row{flex-direction:column;align-items:flex-start}
+    .pills label{width:40px;height:38px}
+    .two{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <img src="https://ptmalayalisamajam.github.io/sadya/logo.png" alt="Nammude Onam">
+    <h1>Onam 2026 Feedback</h1>
+    <p class="org">Prestige Tranquility Malayali Samajam</p>
+    <div class="meta"><span>📅 25 &amp; 31 October 2026</span><span>📍 Prestige Tranquility Clubhouse</span></div>
+  </header>
+  <p class="intro">Takes about 2 minutes. Whether you came or not, your answers help us plan Onam 2027.</p>
+
+  <form id="f" novalidate>
+    <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+    <!-- Section 1 -->
+    <div class="card">
+      <div class="q">
+        <span class="title">Did you attend Nammude Onam 2026? <span class="req">*</span></span>
+        <div class="opts" role="radiogroup">
+          <label class="opt"><input type="radio" name="attendance" value="Both days"> Yes, both days</label>
+          <label class="opt"><input type="radio" name="attendance" value="Day 1 only (25 Oct)"> Day 1 only (25 Oct)</label>
+          <label class="opt"><input type="radio" name="attendance" value="Day 2 only (31 Oct)"> Day 2 only (31 Oct)</label>
+          <label class="opt"><input type="radio" name="attendance" value="Did not attend"> Couldn't make it this year</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: missed -->
+    <div class="card hidden" id="sec-missed">
+      <h2 id="missed-h">We missed you!</h2>
+      <p class="sub">Honest answers here help us most.</p>
+      <div class="q">
+        <span class="title">What kept you away? <span style="font-weight:400;color:var(--muted)">(tick all that apply)</span></span>
+        <div class="opts">
+          <label class="opt"><input type="checkbox" name="reasons" value="Out of town / travelling"> Out of town / travelling</label>
+          <label class="opt"><input type="checkbox" name="reasons" value="Work commitments"> Work commitments</label>
+          <label class="opt"><input type="checkbox" name="reasons" value="Dates or timing didn't suit"> Dates or timing didn't suit</label>
+          <label class="opt"><input type="checkbox" name="reasons" value="Registration fee"> Registration fee</label>
+          <label class="opt"><input type="checkbox" name="reasons" value="Didn't know enough about the programme"> Didn't know enough about the programme</label>
+          <label class="opt"><input type="checkbox" name="reasons" value="Programmes didn't interest me"> Programmes didn't interest me</label>
+          <label class="opt"><input type="checkbox" name="reasons" value="Family or personal reasons"> Family or personal reasons</label>
+        </div>
+      </div>
+      <div class="q">
+        <label class="title" for="reasonsOther">Anything else?</label>
+        <input type="text" id="reasonsOther" name="reasonsOther" maxlength="300">
+      </div>
+      <div class="q">
+        <label class="title" for="nextYearHook">What would make you more likely to join next year?</label>
+        <textarea id="nextYearHook" name="nextYearHook" maxlength="1000"></textarea>
+      </div>
+    </div>
+
+    <!-- Section: experience -->
+    <div class="card hidden" id="sec-exp">
+      <h2>Your experience</h2>
+      <p class="sub">Tell us how it went.</p>
+      <div class="q">
+        <span class="title">Overall, how would you rate the event? <span class="req">*</span></span>
+        <div class="stars" role="radiogroup" aria-label="Overall rating">
+          <input type="radio" id="s5" name="overall" value="5"><label for="s5" title="Excellent">★</label>
+          <input type="radio" id="s4" name="overall" value="4"><label for="s4" title="Good">★</label>
+          <input type="radio" id="s3" name="overall" value="3"><label for="s3" title="Okay">★</label>
+          <input type="radio" id="s2" name="overall" value="2"><label for="s2" title="Poor">★</label>
+          <input type="radio" id="s1" name="overall" value="1"><label for="s1" title="Very poor">★</label>
+        </div>
+      </div>
+      <div class="q">
+        <span class="title">Rate each part</span>
+        <p class="scale-hint">1 = Poor · 5 = Excellent · skip anything you missed</p>
+        <div id="grid"></div>
+      </div>
+      <div class="q">
+        <label class="title" for="enjoyed">What did you enjoy most?</label>
+        <textarea id="enjoyed" name="enjoyed" maxlength="1000"></textarea>
+      </div>
+      <div class="q">
+        <label class="title" for="improve">What should we improve or do differently?</label>
+        <textarea id="improve" name="improve" maxlength="1000"></textarea>
+      </div>
+      <div class="q">
+        <span class="title">Was the ₹3,000 family registration good value?</span>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="value" value="Yes"> Yes</label>
+          <label class="opt"><input type="radio" name="value" value="Somewhat"> Somewhat</label>
+          <label class="opt"><input type="radio" name="value" value="No"> No</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: looking ahead (everyone) -->
+    <div class="card hidden" id="sec-ahead">
+      <h2>Looking ahead to Onam 2027</h2>
+      <div class="q">
+        <span class="title">How likely are you to join Onam 2027?</span>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="attend2027" value="Definitely"> Definitely</label>
+          <label class="opt"><input type="radio" name="attend2027" value="Probably"> Probably</label>
+          <label class="opt"><input type="radio" name="attend2027" value="Not sure"> Not sure</label>
+          <label class="opt"><input type="radio" name="attend2027" value="Unlikely"> Unlikely</label>
+        </div>
+      </div>
+      <div class="q">
+        <span class="title">Would you like to be involved next year?</span>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="involvement" value="Volunteer"> Yes, as a volunteer</label>
+          <label class="opt"><input type="radio" name="involvement" value="Perform"> Yes, as a performer</label>
+          <label class="opt"><input type="radio" name="involvement" value="Both"> Both</label>
+          <label class="opt"><input type="radio" name="involvement" value="Not this time"> Not this time</label>
+        </div>
+      </div>
+      <div class="q">
+        <label class="title" for="suggestions">Any other suggestions?</label>
+        <textarea id="suggestions" name="suggestions" maxlength="1500"></textarea>
+      </div>
+      <div class="q two">
+        <div><label class="title" for="name">Name <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="text" id="name" name="name" maxlength="80" autocomplete="name"></div>
+        <div><label class="title" for="flat">Flat no. <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="text" id="flat" name="flat" maxlength="20"></div>
+      </div>
+      <p class="scale-hint" style="margin-top:10px" id="vol-hint">If you'd like to volunteer or perform, please add your name and flat so we can reach you.</p>
+    </div>
+
+    <div class="hidden" id="sec-submit">
+      <button class="submit" type="submit">Submit feedback</button>
+      <div class="err" id="err" role="alert"></div>
+    </div>
+  </form>
+
+  <div class="card done hidden" id="done">
+    <div class="big">🙏</div>
+    <h2>Nanni!</h2>
+    <p>Your feedback has been recorded. See you at Nammude Onam 2027!</p>
+  </div>
+
+  <footer>Questions? <a href="mailto:tranquilitymalayalisamajam@gmail.com" style="color:var(--green)">tranquilitymalayalisamajam@gmail.com</a></footer>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  // Paste the Web App URL from the Feedback Apps Script deployment here:
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbywwTHvuQCdbeHhR69u49_GJvr8RbiHoN621vqkxnAiIWRz7FCgYGUr2ewJ2mJ6T2JI/exec",
+  FEEDBACK_OPEN: true
+};
+/* ========================================== */
+
+const ASPECTS = [
+  // [key, label, day]  day: "1" = 25 Oct, "2" = 31 Oct, "all" = both days
+  ["r_thiruvathira","Megathiruvathira","1"],
+  ["r_kathakali","Kathakali","1"],
+  ["r_fusion","Music Fusion by Immortal Raga's","1"],
+  ["r_sadya","Onam Sadya","1"],
+  ["r_pookalam","Pookalam","2"],
+  ["r_cultural","Cultural programmes","2"],
+  ["r_registration","Registration (Sadya & contribution)","all"],
+  ["r_venue","Venue & arrangements","all"],
+  ["r_timings","Event timings","all"],
+  ["r_comms","Overall event communication","all"]
+];
+const GROUPS = [["1","Day 1 · 25 October"],["2","Day 2 · 31 October"],["all","Both days"]];
+
+const grid = document.getElementById("grid");
+GROUPS.forEach(([day,heading])=>{
+  const h = document.createElement("div");
+  h.className = "grp"; h.dataset.day = day; h.textContent = heading;
+  grid.appendChild(h);
+  ASPECTS.filter(a=>a[2]===day).forEach(([key,label])=>{
+    const row = document.createElement("div");
+    row.className = "grid-row"; row.dataset.day = day;
+    let pills = "";
+    for(let i=1;i<=5;i++){
+      pills += `<input type="radio" id="${key}${i}" name="${key}" value="${i}"><label for="${key}${i}">${i}</label>`;
+    }
+    row.innerHTML = `<span class="lbl">${label}</span><div class="pills" role="radiogroup" aria-label="${label}">${pills}</div>`;
+    grid.appendChild(row);
+  });
+});
+const daysFor = v => v.startsWith("Day 1") ? ["1","all"] : v.startsWith("Day 2") ? ["2","all"] : ["1","2","all"];
+let visibleDays = ["1","2","all"];
+
+const f = document.getElementById("f");
+const show = (id,on)=>document.getElementById(id).classList.toggle("hidden",!on);
+
+if(!CONFIG.FEEDBACK_OPEN){
+  f.innerHTML = '<div class="card done"><h2>Feedback is now closed</h2><p>Thank you to everyone who responded.</p></div>';
+}
+
+f.addEventListener("change",e=>{
+  if(e.target.name !== "attendance") return;
+  const v = e.target.value;
+  const attended = v !== "Did not attend";
+  const partial = v.startsWith("Day");
+  show("sec-missed", !attended || partial);
+  document.getElementById("missed-h").textContent = partial ? "Missed one of the days?" : "We missed you!";
+  show("sec-exp", attended);
+  visibleDays = daysFor(v);
+  grid.querySelectorAll("[data-day]").forEach(el=>el.classList.toggle("hidden", !visibleDays.includes(el.dataset.day)));
+  show("sec-ahead", true);
+  show("sec-submit", true);
+});
+
+function val(name){ const el=f.querySelector(`[name="${name}"]:checked`); return el?el.value:""; }
+function txt(name){ return (f.elements[name]?.value || "").trim(); }
+
+f.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const err = document.getElementById("err");
+  err.textContent = "";
+  const attendance = val("attendance");
+  const attended = attendance && attendance !== "Did not attend";
+  const partial = attendance.startsWith("Day");
+  if(!attendance){ err.textContent="Please tell us whether you attended."; return; }
+  if(attended && !val("overall")){ err.textContent="Please give an overall rating (the stars)."; document.getElementById("sec-exp").scrollIntoView({behavior:"smooth"}); return; }
+  if(txt("website")) return; // spam bot
+
+  const missed = !attended || partial;
+  const data = {
+    attendance,
+    reasons: missed ? [...f.querySelectorAll('[name="reasons"]:checked')].map(x=>x.value).join("; ") : "",
+    reasonsOther: missed ? txt("reasonsOther") : "",
+    nextYearHook: missed ? txt("nextYearHook") : "",
+    overall: attended ? val("overall") : "",
+    enjoyed: attended ? txt("enjoyed") : "",
+    improve: attended ? txt("improve") : "",
+    value: attended ? val("value") : "",
+    attend2027: val("attend2027"),
+    involvement: val("involvement"),
+    suggestions: txt("suggestions"),
+    name: txt("name"),
+    flat: txt("flat")
+  };
+  ASPECTS.forEach(([k,,day])=> data[k] = attended && visibleDays.includes(day) ? val(k) : "");
+
+  const btn = f.querySelector("button.submit");
+  btn.disabled = true; btn.textContent = "Submitting…";
+
+  try{
+    if(CONFIG.SCRIPT_URL.startsWith("PASTE")){
+      console.log("Preview mode – not sent:", data);
+    }else{
+      const res = await fetch(CONFIG.SCRIPT_URL,{
+        method:"POST",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify(data)
+      });
+      const out = await res.json();
+      if(!out.ok) throw new Error(out.error || "Save failed");
+    }
+    try{ localStorage.setItem("ptms_onam26_feedback","1"); }catch(_){}
+    f.classList.add("hidden");
+    show("done", true);
+    window.scrollTo({top:0,behavior:"smooth"});
+  }catch(ex){
+    btn.disabled = false; btn.textContent = "Submit feedback";
+    err.textContent = "Sorry, that didn't go through. Please check your connection and try again.";
+  }
+});
+</script>
+</body>
+</html>

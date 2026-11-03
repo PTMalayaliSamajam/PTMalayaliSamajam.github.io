@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Onam 2026 Feedback Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Chettan+2:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--cream:#f7f5ee;--card:#fff;--ink:#1d2a20;--muted:#5f6b60;--gold:#c99a2e;--gold-soft:#f5ead0;--green:#1f4d2b;--green-soft:#e6efe7;--maroon:#9a3b2b;--line:#e3e6dc}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;padding:28px 0 16px;border-bottom:6px double var(--gold);margin-bottom:20px}
+  h1{font-family:"Baloo Chettan 2",serif;color:var(--green);font-size:30px;margin:0;line-height:1.1}
+  header p{margin:4px 0 0;color:var(--muted);font-size:14px}
+  button{font:600 14px Inter,sans-serif;background:var(--green);color:#fff;border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--green);border:1px solid var(--green)}
+  .login{max-width:380px;margin:60px auto;text-align:center}
+  .login input{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:10px;margin:12px 0}
+  .err{color:var(--maroon);min-height:1.2em;font-size:14px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .kpi .n{font-size:30px;font-weight:600;color:var(--green);line-height:1.1}
+  .kpi .l{color:var(--muted);font-size:13px;margin-top:4px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .card h2{font-family:"Baloo Chettan 2",serif;color:var(--green);font-size:19px;margin:0 0 12px}
+  .bar{display:grid;grid-template-columns:minmax(120px,45%) 1fr 44px;align-items:center;gap:10px;margin:8px 0;font-size:14px}
+  .track{background:#f4eedd;border-radius:6px;height:14px;overflow:hidden}
+  .fill{height:100%;background:var(--green);border-radius:6px}
+  .fill.gold{background:var(--gold)} .fill.maroon{background:var(--maroon)}
+  .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .empty{color:var(--muted);font-size:14px;font-style:italic}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .tabs button{background:#f4eedd;color:var(--ink);font-weight:500;padding:7px 12px}
+  .tabs button.on{background:var(--green);color:#fff}
+  .comments{max-height:420px;overflow:auto}
+  .c{border-top:1px solid var(--line);padding:10px 0}
+  .c:first-child{border-top:0}
+  .c .who{font-size:12px;color:var(--muted);margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:500}
+  .banner{background:var(--gold-soft);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:16px}
+  .hidden{display:none}
+  @media (max-width:720px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="login" id="login">
+    <img src="https://ptmalayalisamajam.github.io/sadya/logo.png" alt="Nammude Onam" style="width:88px;margin-bottom:8px">
+    <h1>Onam 2026 Feedback Results</h1>
+    <p style="color:var(--muted)">Committee access only</p>
+    <input type="password" id="key" placeholder="Results password" autocomplete="current-password">
+    <button id="go" style="width:100%">View results</button>
+    <div class="err" id="lerr"></div>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <div>
+        <h1>🌼 Nammude Onam 2026 — Feedback</h1>
+        <p id="meta"></p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="ghost" id="refresh">Refresh</button>
+        <button class="ghost" id="logout">Lock</button>
+      </div>
+    </header>
+    <div class="banner hidden" id="demo">Preview mode: showing made-up sample data. Add your Script URL in CONFIG to see real responses.</div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="cols">
+      <div class="card"><h2>Attendance (of respondents)</h2><div id="attendance"></div></div>
+      <div class="card"><h2>Why people stayed away</h2><div id="reasons"></div></div>
+    </div>
+    <div class="cols">
+      <div class="card"><h2>Ratings by area (avg out of 5)</h2><div id="ratings"></div></div>
+      <div class="card"><h2>₹3,000 good value?</h2><div id="value"></div>
+        <h2 style="margin-top:18px">Onam 2027 likelihood</h2><div id="attend2027"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>What people said</h2>
+      <div class="tabs" id="tabs"></div>
+      <div class="comments" id="comments"></div>
+    </div>
+
+    <div class="card">
+      <h2>Volunteers &amp; performers for 2027</h2>
+      <div id="people"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbywwTHvuQCdbeHhR69u49_GJvr8RbiHoN621vqkxnAiIWRz7FCgYGUr2ewJ2mJ6T2JI/exec",  // same URL as feedback.html
+  GROUP_SIZE: 400                                 // members in the WhatsApp group
+};
+/* ========================================== */
+
+const LABELS = {r_thiruvathira:"Megathiruvathira · 25 Oct",r_kathakali:"Kathakali · 25 Oct",r_fusion:"Music Fusion (Immortal Raga's) · 25 Oct",r_sadya:"Onam Sadya · 25 Oct",r_pookalam:"Pookalam · 31 Oct",r_cultural:"Cultural programmes · 31 Oct",r_registration:"Registration (Sadya & contribution)",r_venue:"Venue & arrangements",r_timings:"Event timings",r_comms:"Overall communication"};
+const TABS = [["improve","Improve"],["enjoyed","Enjoyed most"],["nextYearHook","What would bring them back"],["reasonsOther","Other reasons"],["suggestions","Suggestions"]];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let data = null, tab = "improve";
+
+function bars(el, obj, order, cls){
+  const entries = order ? order.filter(k=>obj[k]!==undefined).map(k=>[k,obj[k]]).concat(Object.entries(obj).filter(([k])=>!order.includes(k)))
+                        : Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){ el.innerHTML='<p class="empty">No answers yet</p>'; return; }
+  const max = Math.max(...entries.map(e=>e[1]));
+  el.innerHTML = entries.map(([k,v])=>`<div class="bar"><span>${esc(k)}</span><div class="track"><div class="fill ${cls||""}" style="width:${v/max*100}%"></div></div><span class="num">${v}</span></div>`).join("");
+}
+
+function render(d){
+  data = d;
+  const att = d.attendance || {};
+  const came = (att["Both days"]||0)+(att["Day 1 only (25 Oct)"]||0)+(att["Day 2 only (31 Oct)"]||0);
+  const vol = (d.involvement.Volunteer||0)+(d.involvement.Perform||0)+(d.involvement.Both||0);
+  $("meta").textContent = `${d.total} responses${d.lastUpdated?` · last at ${d.lastUpdated}`:""}`;
+  $("kpis").innerHTML = [
+    [d.total, `responses (${Math.round(d.total/CONFIG.GROUP_SIZE*100)}% of ~${CONFIG.GROUP_SIZE} members)`],
+    [d.overall.avg ?? "–", `overall rating out of 5 (${d.overall.n} ratings)`],
+    [att["Did not attend"]||0, "respondents who didn't attend"],
+    [vol, "offered to volunteer or perform"]
+  ].map(([n,l])=>`<div class="kpi"><div class="n">${esc(n)}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  bars($("attendance"), att, ["Both days","Day 1 only (25 Oct)","Day 2 only (31 Oct)","Did not attend"]);
+  bars($("reasons"), d.reasons, null, "maroon");
+  const r = $("ratings");
+  const rs = Object.entries(d.ratings).filter(([,v])=>v.avg!==null).sort((a,b)=>b[1].avg-a[1].avg);
+  r.innerHTML = rs.length ? rs.map(([k,v])=>`<div class="bar"><span>${LABELS[k]}</span><div class="track"><div class="fill gold" style="width:${v.avg/5*100}%"></div></div><span class="num" title="${v.n} ratings">${v.avg}</span></div>`).join("") : '<p class="empty">No ratings yet</p>';
+  bars($("value"), d.value, ["Yes","Somewhat","No"]);
+  bars($("attend2027"), d.attend2027, ["Definitely","Probably","Not sure","Unlikely"]);
+
+  $("tabs").innerHTML = TABS.map(([k,l])=>`<button data-k="${k}" class="${k===tab?"on":""}">${l} (${(d.comments[k]||[]).length})</button>`).join("");
+  renderComments();
+
+  $("people").innerHTML = d.people.length
+    ? `<table><thead><tr><th>Name</th><th>Flat</th><th>Interested in</th></tr></thead><tbody>${d.people.map(p=>`<tr><td>${esc(p.name||"(not given)")}</td><td>${esc(p.flat||"–")}</td><td>${esc(p.involvement)}</td></tr>`).join("")}</tbody></table>`
+    : '<p class="empty">No one yet</p>';
+}
+
+function renderComments(){
+  const list = (data.comments[tab]||[]).slice().reverse();
+  $("comments").innerHTML = list.length
+    ? list.map(c=>`<div class="c">${esc(c.text)}<div class="who">${esc(c.who||"Anonymous")} · ${esc(c.when)}</div></div>`).join("")
+    : '<p class="empty">Nothing here yet</p>';
+  [...$("tabs").children].forEach(b=>b.classList.toggle("on", b.dataset.k===tab));
+}
+$("tabs").addEventListener("click", e=>{ if(e.target.dataset.k){ tab=e.target.dataset.k; renderComments(); }});
+
+async function load(key){
+  $("lerr").textContent = "";
+  if(CONFIG.SCRIPT_URL.startsWith("PASTE")){ $("demo").classList.remove("hidden"); return SAMPLE; }
+  const res = await fetch(`${CONFIG.SCRIPT_URL}?key=${encodeURIComponent(key)}`);
+  const out = await res.json();
+  if(!out.ok) throw new Error(out.error);
+  return out;
+}
+
+async function openResults(key){
+  $("go").disabled = true;
+  try{
+    const d = await load(key);
+    try{ sessionStorage.setItem("ptms_fb_key", key); }catch(_){}
+    $("login").classList.add("hidden"); $("app").classList.remove("hidden");
+    render(d);
+  }catch(ex){
+    $("lerr").textContent = ex.message==="unauthorized" ? "Wrong password." : "Couldn't load results. Try again.";
+  }finally{ $("go").disabled = false; }
+}
+
+$("go").onclick = ()=>openResults($("key").value.trim());
+$("key").addEventListener("keydown", e=>{ if(e.key==="Enter") $("go").click(); });
+$("refresh").onclick = ()=>{ let k=""; try{k=sessionStorage.getItem("ptms_fb_key")||"";}catch(_){} openResults(k); };
+$("logout").onclick = ()=>{ try{sessionStorage.removeItem("ptms_fb_key");}catch(_){} location.reload(); };
+try{ const k=sessionStorage.getItem("ptms_fb_key"); if(k) openResults(k); }catch(_){}
+
+/* Sample data – only shown while SCRIPT_URL is not set */
+const SAMPLE = {ok:true,total:42,lastUpdated:"2026-11-05 21:14:00",
+  attendance:{"Both days":18,"Day 1 only (25 Oct)":6,"Day 2 only (31 Oct)":4,"Did not attend":14},
+  reasons:{"Out of town / travelling":9,"Dates or timing didn't suit":7,"Work commitments":5,"Registration fee":4,"Didn't know enough about the programme":3},
+  overall:{avg:4.2,n:28},overallDist:{},
+  ratings:{r_thiruvathira:{avg:4.6,n:22},r_kathakali:{avg:4.4,n:20},r_fusion:{avg:4.7,n:21},r_sadya:{avg:4.5,n:22},r_pookalam:{avg:4.3,n:18},r_cultural:{avg:4.2,n:19},r_registration:{avg:3.5,n:20},r_venue:{avg:4.0,n:27},r_timings:{avg:3.3,n:26},r_comms:{avg:3.1,n:27}},
+  value:{"Yes":17,"Somewhat":8,"No":3},attend2027:{"Definitely":20,"Probably":12,"Not sure":8,"Unlikely":2},
+  involvement:{"Volunteer":6,"Perform":3,"Both":2,"Not this time":25},
+  comments:{improve:[{text:"Sample: start the programmes on time.",who:"",when:"2026-11-04"}],enjoyed:[{text:"Sample: the kids' dance.",who:"",when:"2026-11-04"}],nextYearHook:[],reasonsOther:[],suggestions:[]},
+  people:[{name:"Sample name",flat:"A-101",involvement:"Volunteer"}]};
+</script>
+</body>
+</html>
