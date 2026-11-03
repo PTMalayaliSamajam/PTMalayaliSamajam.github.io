@@ -105,7 +105,7 @@ const CONFIG = {
 /* ========================================== */
 
 const LABELS = {r_thiruvathira:"Megathiruvathira · 25 Oct",r_kathakali:"Kathakali · 25 Oct",r_fusion:"Music Fusion (Immortal Raga's) · 25 Oct",r_sadya:"Onam Sadya · 25 Oct",r_pookalam:"Pookalam · 31 Oct",r_cultural:"Cultural programmes · 31 Oct",r_registration:"Registration (Sadya & contribution)",r_venue:"Venue & arrangements",r_timings:"Event timings",r_comms:"Overall communication"};
-const TABS = [["improve","Improve"],["enjoyed","Enjoyed most"],["nextYearHook","What would bring them back"],["reasonsOther","Other reasons"],["suggestions","Suggestions"]];
+const TABS = [["improve","Improve"],["leastLiked","Liked least"],["enjoyed","Enjoyed most"],["nextYearHook","What would bring them back"],["reasonsOther","Other reasons"],["suggestions","Suggestions"]];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data = null, tab = "improve";
@@ -126,7 +126,8 @@ function render(d){
   $("meta").textContent = `${d.total} responses${d.lastUpdated?` · last at ${d.lastUpdated}`:""}`;
   $("kpis").innerHTML = [
     [d.total, `responses (${Math.round(d.total/CONFIG.GROUP_SIZE*100)}% of ~${CONFIG.GROUP_SIZE} members)`],
-    [d.overall.avg ?? "–", `overall rating out of 5 (${d.overall.n} ratings)`],
+    [d.overallD1.avg ?? "–", `Day 1 (25 Oct) overall, out of 5 (${d.overallD1.n} ratings)`],
+    [d.overallD2.avg ?? "–", `Day 2 (31 Oct) overall, out of 5 (${d.overallD2.n} ratings)`],
     [att["Did not attend"]||0, "respondents who didn't attend"],
     [vol, "offered to volunteer or perform"]
   ].map(([n,l])=>`<div class="kpi"><div class="n">${esc(n)}</div><div class="l">${esc(l)}</div></div>`).join("");
@@ -187,11 +188,11 @@ try{ const k=sessionStorage.getItem("ptms_fb_key"); if(k) openResults(k); }catch
 const SAMPLE = {ok:true,total:42,lastUpdated:"2026-11-05 21:14:00",
   attendance:{"Both days":18,"Day 1 only (25 Oct)":6,"Day 2 only (31 Oct)":4,"Did not attend":14},
   reasons:{"Out of town / travelling":9,"Dates or timing didn't suit":7,"Work commitments":5,"Registration fee":4,"Didn't know enough about the programme":3},
-  overall:{avg:4.2,n:28},overallDist:{},
+  overallD1:{avg:4.4,n:24},overallD2:{avg:4.1,n:22},
   ratings:{r_thiruvathira:{avg:4.6,n:22},r_kathakali:{avg:4.4,n:20},r_fusion:{avg:4.7,n:21},r_sadya:{avg:4.5,n:22},r_pookalam:{avg:4.3,n:18},r_cultural:{avg:4.2,n:19},r_registration:{avg:3.5,n:20},r_venue:{avg:4.0,n:27},r_timings:{avg:3.3,n:26},r_comms:{avg:3.1,n:27}},
   value:{"Yes":17,"Somewhat":8,"No":3},attend2027:{"Definitely":20,"Probably":12,"Not sure":8,"Unlikely":2},
   involvement:{"Volunteer":6,"Perform":3,"Both":2,"Not this time":25},
-  comments:{improve:[{text:"Sample: start the programmes on time.",who:"",when:"2026-11-04"}],enjoyed:[{text:"Sample: the kids' dance.",who:"",when:"2026-11-04"}],nextYearHook:[],reasonsOther:[],suggestions:[]},
+  comments:{improve:[{text:"Sample: start the programmes on time.",who:"",when:"2026-11-04"}],enjoyed:[{text:"Sample: the kids' dance.",who:"",when:"2026-11-04"}],leastLiked:[{text:"Sample: long wait at the Sadya counter.",who:"",when:"2026-11-04"}],nextYearHook:[],reasonsOther:[],suggestions:[]},
   people:[{name:"Sample name",flat:"A-101",involvement:"Volunteer"}]};
 </script>
 </body>

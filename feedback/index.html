@@ -131,14 +131,24 @@
     <div class="card hidden" id="sec-exp">
       <h2>Your experience</h2>
       <p class="sub">Tell us how it went.</p>
-      <div class="q">
-        <span class="title">Overall, how would you rate the event? <span class="req">*</span></span>
-        <div class="stars" role="radiogroup" aria-label="Overall rating">
-          <input type="radio" id="s5" name="overall" value="5"><label for="s5" title="Excellent">★</label>
-          <input type="radio" id="s4" name="overall" value="4"><label for="s4" title="Good">★</label>
-          <input type="radio" id="s3" name="overall" value="3"><label for="s3" title="Okay">★</label>
-          <input type="radio" id="s2" name="overall" value="2"><label for="s2" title="Poor">★</label>
-          <input type="radio" id="s1" name="overall" value="1"><label for="s1" title="Very poor">★</label>
+      <div class="q overall-q" data-day="1">
+        <span class="title">Overall rating: Day 1 (25 Oct) <span class="req">*</span></span>
+        <div class="stars" role="radiogroup" aria-label="Overall rating Day 1 (25 Oct)">
+          <input type="radio" id="overall_d1_5" name="overall_d1" value="5"><label for="overall_d1_5" title="Excellent">★</label>
+          <input type="radio" id="overall_d1_4" name="overall_d1" value="4"><label for="overall_d1_4" title="Good">★</label>
+          <input type="radio" id="overall_d1_3" name="overall_d1" value="3"><label for="overall_d1_3" title="Okay">★</label>
+          <input type="radio" id="overall_d1_2" name="overall_d1" value="2"><label for="overall_d1_2" title="Poor">★</label>
+          <input type="radio" id="overall_d1_1" name="overall_d1" value="1"><label for="overall_d1_1" title="Very poor">★</label>
+        </div>
+      </div>
+      <div class="q overall-q" data-day="2">
+        <span class="title">Overall rating: Day 2 (31 Oct) <span class="req">*</span></span>
+        <div class="stars" role="radiogroup" aria-label="Overall rating Day 2 (31 Oct)">
+          <input type="radio" id="overall_d2_5" name="overall_d2" value="5"><label for="overall_d2_5" title="Excellent">★</label>
+          <input type="radio" id="overall_d2_4" name="overall_d2" value="4"><label for="overall_d2_4" title="Good">★</label>
+          <input type="radio" id="overall_d2_3" name="overall_d2" value="3"><label for="overall_d2_3" title="Okay">★</label>
+          <input type="radio" id="overall_d2_2" name="overall_d2" value="2"><label for="overall_d2_2" title="Poor">★</label>
+          <input type="radio" id="overall_d2_1" name="overall_d2" value="1"><label for="overall_d2_1" title="Very poor">★</label>
         </div>
       </div>
       <div class="q">
@@ -149,6 +159,10 @@
       <div class="q">
         <label class="title" for="enjoyed">What did you enjoy most?</label>
         <textarea id="enjoyed" name="enjoyed" maxlength="1000"></textarea>
+      </div>
+      <div class="q">
+        <label class="title" for="leastLiked">What did you like the least about the event, if any?</label>
+        <textarea id="leastLiked" name="leastLiked" maxlength="1000"></textarea>
       </div>
       <div class="q">
         <label class="title" for="improve">What should we improve or do differently?</label>
@@ -273,6 +287,7 @@ f.addEventListener("change",e=>{
   show("sec-exp", attended);
   visibleDays = daysFor(v);
   grid.querySelectorAll("[data-day]").forEach(el=>el.classList.toggle("hidden", !visibleDays.includes(el.dataset.day)));
+  document.querySelectorAll(".overall-q").forEach(el=>el.classList.toggle("hidden", !visibleDays.includes(el.dataset.day)));
   show("sec-ahead", true);
   show("sec-submit", true);
 });
@@ -288,7 +303,11 @@ f.addEventListener("submit", async e=>{
   const attended = attendance && attendance !== "Did not attend";
   const partial = attendance.startsWith("Day");
   if(!attendance){ err.textContent="Please tell us whether you attended."; return; }
-  if(attended && !val("overall")){ err.textContent="Please give an overall rating (the stars)."; document.getElementById("sec-exp").scrollIntoView({behavior:"smooth"}); return; }
+  const needD1 = attended && visibleDays.includes("1"), needD2 = attended && visibleDays.includes("2");
+  if((needD1 && !val("overall_d1")) || (needD2 && !val("overall_d2"))){
+    err.textContent = needD1 && needD2 ? "Please give an overall star rating for each day." : "Please give an overall star rating for the day you attended.";
+    document.getElementById("sec-exp").scrollIntoView({behavior:"smooth"}); return;
+  }
   if(txt("website")) return; // spam bot
 
   const missed = !attended || partial;
@@ -297,8 +316,10 @@ f.addEventListener("submit", async e=>{
     reasons: missed ? [...f.querySelectorAll('[name="reasons"]:checked')].map(x=>x.value).join("; ") : "",
     reasonsOther: missed ? txt("reasonsOther") : "",
     nextYearHook: missed ? txt("nextYearHook") : "",
-    overall: attended ? val("overall") : "",
+    overall_d1: needD1 ? val("overall_d1") : "",
+    overall_d2: needD2 ? val("overall_d2") : "",
     enjoyed: attended ? txt("enjoyed") : "",
+    leastLiked: attended ? txt("leastLiked") : "",
     improve: attended ? txt("improve") : "",
     value: attended ? val("value") : "",
     attend2027: val("attend2027"),
