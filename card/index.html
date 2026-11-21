@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Membership Card · PT Malayali Samajam</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;900&display=swap" rel="stylesheet">
+<style>
+  :root { --g:#104a2e; --gd:#0a3420; --gold:#c49834; --cream:#fbf6e9; --ink:#22221e; --muted:#6e685c; --maroon:#801c24; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--cream); color:var(--ink); }
+  header { background:var(--g); color:#faf0d2; text-align:center; padding:22px 16px 18px; border-bottom:5px solid var(--gold); }
+  header img { width:84px; height:auto; background:#fff; border-radius:12px; padding:6px; border:2px solid var(--gold); }
+  header h1 { font-family: Georgia, serif; font-size:20px; margin:10px 0 2px; letter-spacing:.02em; }
+  header p { margin:0; font-size:12px; letter-spacing:.14em; font-weight:700; color:#e2be66; }
+  main { max-width:520px; margin:0 auto; padding:24px 18px 48px; }
+  .panel { background:#fff; border:1px solid #e8dfc6; border-radius:16px; padding:22px 20px; }
+  h2 { font-family: Georgia, serif; color:var(--g); font-size:20px; margin:0 0 6px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 18px; line-height:1.45; }
+  label { display:block; font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--muted); margin-bottom:6px; }
+  .phone { display:flex; border:1.5px solid #d9cfb3; border-radius:12px; overflow:hidden; background:#fff; }
+  .phone span { padding:14px 12px; background:#f4eedc; font-weight:600; color:var(--g); }
+  input { border:0; outline:none; font-size:18px; padding:14px 12px; width:100%; letter-spacing:.04em; font-family:inherit; }
+  .otp { border:1.5px solid #d9cfb3; border-radius:12px; text-align:center; font-size:24px; letter-spacing:.4em; }
+  .phone:focus-within, .otp:focus { border-color:var(--g); }
+  button { width:100%; margin-top:16px; background:var(--g); color:#fff; border:0; border-radius:999px; padding:15px; font-size:16px; font-weight:600; cursor:pointer; font-family:inherit; }
+  button:disabled { opacity:.55; cursor:default; }
+  button.ghost { background:transparent; color:var(--g); border:1.5px solid var(--g); }
+  .link { background:none; border:0; color:var(--g); text-decoration:underline; font-size:14px; padding:6px; width:auto; margin-top:10px; }
+  .err { color:var(--maroon); font-size:14px; min-height:20px; margin-top:12px; }
+  .hidden { display:none !important; }
+  .cardwrap { margin-bottom:22px; }
+  .cardwrap canvas { width:100%; max-width:380px; margin:0 auto; height:auto; border-radius:12px; box-shadow:0 10px 28px rgba(16,74,46,.18); display:block; }
+  .note { font-size:13px; color:var(--muted); text-align:center; line-height:1.5; margin-top:18px; }
+  footer { text-align:center; font-size:13px; color:var(--muted); padding:0 16px 30px; }
+  footer a { color:var(--g); }
+</style>
+</head>
+<body>
+<header>
+  <img src="ptms-logo.png" alt="PT Malayali Samajam logo">
+  <h1>Prestige Tranquility Malayali Samajam</h1>
+  <p>MEMBERSHIP CARD</p>
+</header>
+
+<main>
+  <!-- Step 1: phone -->
+  <section id="stepPhone" class="panel">
+    <h2>Get your card</h2>
+    <p class="sub">Enter the mobile number you gave the Samajam. We'll send a one-time code to confirm it's you.</p>
+    <label for="phone">MOBILE NUMBER</label>
+    <div class="phone"><span>+91</span><input id="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98xxxxxxxx" autocomplete="tel-national"></div>
+    <button id="sendBtn">Send OTP</button>
+    <div id="errPhone" class="err"></div>
+  </section>
+
+  <!-- Step 2: OTP -->
+  <section id="stepOtp" class="panel hidden">
+    <h2>Enter the code</h2>
+    <p class="sub">We sent a 6-digit code to <b id="sentTo"></b>.</p>
+    <input id="otp" class="otp" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••">
+    <button id="verifyBtn">Verify &amp; show my card</button>
+    <div style="text-align:center"><button id="changeBtn" class="link">Change number</button></div>
+    <div id="errOtp" class="err"></div>
+  </section>
+
+  <!-- Step 3: card(s) -->
+  <section id="stepCard" class="hidden">
+    <div id="cards"></div>
+    <p class="note">Show this card at Samajam events. Please don't share it — the QR code is unique to your family.<br>On iPhone, if download opens the image, tap Share → Save Image.</p>
+    <button id="signOutBtn" class="ghost">Sign out</button>
+  </section>
+
+  <!-- Not found -->
+  <section id="stepNone" class="panel hidden">
+    <h2>No card found</h2>
+    <p class="sub">This number isn't linked to a membership. If you've paid, please contact the committee at <b>tranquilitymalayalisamajam@gmail.com</b> with your name and flat number.</p>
+    <button id="tryAgainBtn" class="ghost">Try another number</button>
+  </section>
+
+  <div id="recaptcha"></div>
+</main>
+
+<footer>Questions? <a href="mailto:tranquilitymalayalisamajam@gmail.com">tranquilitymalayalisamajam@gmail.com</a></footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+/* ===== CONFIG (same Firebase project as /sadya) ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD5rDHGGQy_OQ8sZ_nJv0Wp5CkO0AZ290U",
+  authDomain: "ptmalayalisamajam.firebaseapp.com",
+  projectId: "ptmalayalisamajam",
+  storageBucket: "ptmalayalisamajam.firebasestorage.app",
+  messagingSenderId: "713492734826",
+  appId: "1:713492734826:web:8928a3a3641e6eddd23b13"
+};
+const MEMBERS_COLLECTION = "members";
+const CARD_YEAR = "2026";
+/* ====================================================================== */
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+let confirmation = null, verifier = null;
+
+function show(step) {
+  ["stepPhone","stepOtp","stepCard","stepNone"].forEach(s => $(s).classList.toggle("hidden", s !== step));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function getVerifier() {
+  if (!verifier) verifier = new firebase.auth.RecaptchaVerifier("recaptcha", { size: "invisible" });
+  return verifier;
+}
+
+$("sendBtn").onclick = async () => {
+  const n = $("phone").value.replace(/\D/g, "");
+  $("errPhone").textContent = "";
+  if (!/^[6-9]\d{9}$/.test(n)) { $("errPhone").textContent = "Enter a valid 10-digit mobile number."; return; }
+  $("sendBtn").disabled = true; $("sendBtn").textContent = "Sending…";
+  try {
+    confirmation = await auth.signInWithPhoneNumber("+91" + n, getVerifier());
+    $("sentTo").textContent = "+91 " + n;
+    $("otp").value = "";
+    show("stepOtp");
+    $("otp").focus();
+  } catch (e) {
+    console.error(e);
+    $("errPhone").textContent = e.code === "auth/too-many-requests"
+      ? "Too many attempts. Please try again later."
+      : "Couldn't send the code. Please try again.";
+    try { verifier && verifier.clear(); } catch(_) {}
+    verifier = null; $("recaptcha").innerHTML = "";
+  } finally {
+    $("sendBtn").disabled = false; $("sendBtn").textContent = "Send OTP";
+  }
+};
+
+$("verifyBtn").onclick = async () => {
+  const code = $("otp").value.replace(/\D/g, "");
+  $("errOtp").textContent = "";
+  if (code.length !== 6) { $("errOtp").textContent = "Enter the 6-digit code."; return; }
+  $("verifyBtn").disabled = true; $("verifyBtn").textContent = "Checking…";
+  try {
+    await confirmation.confirm(code);   // onAuthStateChanged loads the card
+  } catch (e) {
+    console.error(e);
+    $("errOtp").textContent = e.code === "auth/invalid-verification-code"
+      ? "That code is incorrect." : e.code === "auth/code-expired"
+      ? "Code expired. Go back and request a new one." : "Couldn't verify. Please try again.";
+  } finally {
+    $("verifyBtn").disabled = false; $("verifyBtn").textContent = "Verify & show my card";
+  }
+};
+
+$("changeBtn").onclick = () => show("stepPhone");
+$("tryAgainBtn").onclick = $("signOutBtn").onclick = async () => { await auth.signOut(); $("phone").value = ""; show("stepPhone"); };
+
+auth.onAuthStateChanged(async user => {
+  if (!user || !user.phoneNumber) return;
+  try {
+    const snap = await db.collection(MEMBERS_COLLECTION)
+      .where("phone", "==", user.phoneNumber).get();
+    const members = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => m.active !== false);
+    if (!members.length) { show("stepNone"); return; }
+    $("cards").innerHTML = "";
+    const tpl = await loadImage("card-template.png");
+    try { await document.fonts.load("900 52px Montserrat"); await document.fonts.load("500 34px Montserrat"); } catch(_) {}
+    for (const m of members) renderCard(m, tpl);
+    show("stepCard");
+  } catch (e) {
+    console.error(e);
+    show("stepNone");
+  }
+});
+
+/* ---------- card drawing (matches the printed design) ---------- */
+function loadImage(src) {
+  return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+}
+
+function renderCard(m, tpl) {
+  // Portrait design: committee template (card-template.png) + QR, name, unit, ID
+  const c = document.createElement("canvas");
+  c.width = 900; c.height = 1600;
+  const x = c.getContext("2d");
+  x.drawImage(tpl, 0, 0, 900, 1600);
+  x.textAlign = "center"; x.textBaseline = "middle";
+
+  // QR
+  const qr = qrcode(0, "M"); qr.addData("PTMS:" + m.code); qr.make();
+  const n = qr.getModuleCount(), size = 360, cell = size / n, qx = 450 - size / 2, qy = 780;
+  x.fillStyle = "#0a0a0a";
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++)
+    if (qr.isDark(r, k)) x.fillRect(Math.round(qx + k * cell), Math.round(qy + r * cell), Math.ceil(cell), Math.ceil(cell));
+
+  // Name: up to two lines, shrink to fit
+  const name = String(m.name).replace(/\s+/g, " ").toUpperCase();
+  const wrap = (fs) => {
+    x.font = `900 ${fs}px Montserrat, Arial, sans-serif`;
+    const lines = []; let cur = "";
+    for (const w of name.split(" ")) {
+      const t = (cur + " " + w).trim();
+      if (!cur || x.measureText(t).width <= 530) cur = t; else { lines.push(cur); cur = w; }
+    }
+    lines.push(cur); return lines;
+  };
+  let fs = 52, lines = wrap(fs);
+  while (fs > 28 && (lines.length > 2 || lines.some(l => x.measureText(l).width > 530))) { fs -= 2; lines = wrap(fs); }
+  lines = lines.slice(0, 2);
+  const lh = Math.round(fs * 1.08), top = 1288 - lh * lines.length / 2;
+  x.fillStyle = "#204e0e";
+  lines.forEach((l, i) => x.fillText(l, 450, top + i * lh + lh / 2));
+
+  // Unit and member ID
+  x.font = "500 34px Montserrat, Arial, sans-serif";
+  x.fillStyle = "#0f0f0f"; x.fillText("UNIT - " + m.flat, 450, 1415);
+  x.fillStyle = "#ffffff"; x.fillText(m.id, 450, 1527);
+
+  const box = document.createElement("div"); box.className = "cardwrap";
+  box.appendChild(c);
+  const btn = document.createElement("button"); btn.textContent = "Download card";
+  btn.onclick = () => c.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = `PTMS_Membership_${m.id}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, "image/png");
+  box.appendChild(btn);
+  $("cards").appendChild(box);
+}
+</script>
+</body>
+</html>
