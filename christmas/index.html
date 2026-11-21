@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PT Wish Tree · Nammude Christmas 2026</title>
+<meta name="description" content="Hang your Christmas wish on the PT Malayali Samajam tree — in Malayalam or English.">
+<meta property="og:title" content="PT Wish Tree · Nammude Christmas 2026">
+<meta property="og:description" content="Hang your Christmas wish on our Samajam tree — in Malayalam or English. 🎄">
+<meta property="og:image" content="https://ptmalayalisamajam.github.io/sadya/logo.png">
+<meta name="theme-color" content="#0a2219">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;700&family=Noto+Serif+Malayalam:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a2219; --bg2:#0f2e22; --panel:#123a2b; --line:#24533f;
+  --emerald:#1f7a52; --emerald2:#2f9a68; --gold:#e3b75a; --gold2:#f5d68f; --red:#c8323c; --red2:#e2545c;
+  --ink:#f4efe2; --ink2:#c9d6cc; --ink3:#8fa89a;
+  --ml:"Noto Sans Malayalam", sans-serif;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(120% 70% at 50% 0%, #15402f 0%, var(--bg) 60%) fixed, var(--bg);color:var(--ink);
+  font:16px/1.55 Manrope, var(--ml), system-ui, sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+:lang(ml), .ml{font-family:var(--ml)}
+a{color:var(--gold2)}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* snow */
+.snow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.snow i{position:absolute;top:-12px;width:var(--s);height:var(--s);border-radius:50%;background:#fff;opacity:var(--o);
+  animation:fall var(--d) linear var(--dl) infinite}
+@keyframes fall{to{transform:translate3d(var(--x),105vh,0)}}
+
+header{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:14px 0 0}
+header img{width:38px;height:38px;border-radius:50%;background:#fff;object-fit:contain}
+header .org{font-weight:700;font-size:14px;letter-spacing:.02em;line-height:1.2}
+header .org small{display:block;font-weight:500;color:var(--ink3);font-size:12px}
+header .share-top{margin-left:auto;background:none;border:1px solid var(--line);color:var(--ink2);border-radius:99px;padding:7px 12px;font-size:13px;display:flex;gap:6px;align-items:center}
+
+.hero{position:relative;z-index:2;text-align:center;padding:22px 0 4px}
+.hero .greet{font-family:"Noto Serif Malayalam", var(--ml);color:var(--gold2);font-size:clamp(22px,6vw,30px);margin:0}
+.hero h1{font-family:Fraunces, serif;font-weight:700;font-size:clamp(34px,10vw,56px);line-height:1.02;margin:6px 0 10px;letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.count{display:inline-flex;align-items:baseline;gap:8px;background:rgba(227,183,90,.1);border:1px solid rgba(227,183,90,.3);
+  border-radius:99px;padding:6px 16px;color:var(--ink2);font-size:14px}
+.count b{font-family:Fraunces, serif;font-size:24px;color:var(--gold2);font-variant-numeric:tabular-nums}
+
+/* tree */
+.stage{position:relative;z-index:2;margin:6px auto 0;max-width:560px}
+#tree{width:100%;height:auto;display:block;touch-action:manipulation;overflow:visible}
+.tier{filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.light{animation:twinkle 2.4s ease-in-out infinite;animation-delay:var(--dl)}
+@keyframes twinkle{0%,100%{opacity:.35}50%{opacity:1}}
+.topstar{transform-box:fill-box;transform-origin:center;animation:glow 3s ease-in-out infinite}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 4px #f5d68f)}50%{filter:drop-shadow(0 0 14px #f5d68f)}}
+.orn{cursor:pointer;outline:none}
+.orn .body{transform-box:fill-box;transform-origin:50% 0;transition:transform .2s}
+.orn.sway .body{animation:sway var(--sw) ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.orn:hover .body,.orn:focus-visible .body{transform:scale(1.25)}
+.orn:focus-visible .hit{stroke:var(--gold2);stroke-width:2}
+.orn.new .body{animation:pop .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.orn.mine .ring{stroke:var(--gold2);stroke-width:2;fill:none;animation:ringpulse 1.6s ease-in-out infinite}
+.orn.pending .body{opacity:.75}
+.orn.pending .ring{stroke:#fff;stroke-dasharray:3 3;stroke-width:1.6;fill:none;animation:spin 6s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes ringpulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hint{text-align:center;color:var(--ink3);font-size:13px;margin:2px 0 0}
+.pager{display:flex;gap:8px;justify-content:center;margin:8px 0 0;flex-wrap:wrap}
+.pager button{background:var(--panel);color:var(--ink2);border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:13px}
+.pager button[aria-current="true"]{background:var(--gold);color:#2a1d05;border-color:var(--gold);font-weight:700}
+.pager-note{text-align:center;color:var(--gold2);font-size:13px;margin:6px 0 0}
+
+.ctas{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 6px}
+.btn{border:0;border-radius:14px;padding:15px 12px;font-weight:700;font-size:16px;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;min-height:52px}
+.btn-gold{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#2a1d05;box-shadow:0 6px 20px rgba(227,183,90,.25)}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.btn-wa{background:#1f8f4e;color:#fff;grid-column:1/-1;font-size:15px;min-height:46px;padding:11px}
+.btn-wide{grid-column:1/-1}
+.closed{grid-column:1/-1;text-align:center;color:var(--gold2);font-size:14px;margin:0}
+
+section{position:relative;z-index:2;margin:34px 0}
+h2{font-family:Fraunces, serif;font-weight:700;font-size:26px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--ink3);margin:0 0 16px;font-size:14px}
+
+/* towers */
+.towers{display:grid;gap:7px}
+.trow{display:grid;grid-template-columns:38px 1fr 34px;align-items:center;gap:10px;font-size:14px}
+.trow .tc{font-weight:700;color:var(--ink2)}
+.trow .bar{height:12px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+.trow .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--emerald),var(--emerald2));width:var(--w);transition:width .8s ease}
+.trow.lead .bar i{background:linear-gradient(90deg,#b88a2e,var(--gold2))}
+.trow .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.trow.lead .tc::after{content:" ★";color:var(--gold2)}
+.trow.zero{opacity:.5}
+
+/* gallery */
+.filters{display:flex;gap:8px;margin:0 0 14px}
+.filters select{flex:1;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.card{background:linear-gradient(180deg,#143f2f,#11372a);border:1px solid var(--line);border-radius:var(--radius);padding:16px 16px 12px;position:relative}
+.card p{margin:0 0 12px;white-space:pre-line;overflow-wrap:anywhere}
+.card p:lang(ml){font-size:16.5px;line-height:1.75}
+.card footer{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink3)}
+.card footer .who{color:var(--ink2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tag{border:1px solid var(--line);border-radius:99px;padding:1px 8px;font-size:12px;white-space:nowrap}
+.card svg.ic{width:22px;height:22px;flex:none;margin-left:auto}
+.more{margin:16px auto 0;display:block}
+.empty{color:var(--ink3);text-align:center;padding:24px;border:1px dashed var(--line);border-radius:var(--radius)}
+
+footer.site{position:relative;z-index:2;text-align:center;color:var(--ink3);font-size:13px;padding:30px 0 40px;border-top:1px solid var(--line);margin-top:40px}
+footer.site details{text-align:left;max-width:560px;margin:0 auto 14px}
+footer.site summary{cursor:pointer;color:var(--ink2);text-align:center}
+
+/* dialogs */
+dialog{border:0;padding:0;background:transparent;color:var(--ink);max-width:min(520px,100vw);width:100%;max-height:100dvh}
+dialog::backdrop{background:rgba(3,12,8,.72);backdrop-filter:blur(3px)}
+.sheet{background:linear-gradient(180deg,#16473a,#0f3226);border:1px solid var(--line);border-radius:22px;padding:22px 20px 20px;position:relative;
+  max-height:calc(100dvh - 24px);overflow:auto;margin:12px}
+@media (max-width:560px){
+  dialog{margin:auto 0 0;max-width:100vw}
+  .sheet{margin:0;border-radius:22px 22px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom));max-height:94dvh}
+  dialog[open] .sheet{animation:up .28s ease-out}
+}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:var(--ink);font-size:22px;line-height:1}
+.sheet h3{font-family:Fraunces, serif;font-size:24px;margin:0 0 4px;padding-right:40px}
+
+/* read wish */
+.wish-orn{width:56px;height:56px;margin:0 auto 6px;display:block}
+.wish-msg{font-size:19px;line-height:1.6;text-align:center;margin:8px 4px 14px;white-space:pre-line;overflow-wrap:anywhere}
+.wish-msg:lang(ml){font-size:19px;line-height:1.85}
+.wish-by{text-align:center;color:var(--ink2);font-size:14px;margin:0 0 18px}
+.wish-by b{color:var(--gold2)}
+.wish-actions{display:flex;gap:10px}
+.wish-actions .btn{flex:1;font-size:15px;min-height:46px;padding:10px}
+.report{display:block;margin:14px auto 0;background:none;border:0;color:var(--ink3);font-size:13px;text-decoration:underline}
+.pending-note{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--ink2);text-align:center;margin:0 0 14px}
+
+/* form */
+form{display:grid;gap:14px;margin-top:12px}
+label.f{display:grid;gap:6px;font-size:14px;font-weight:600;color:var(--ink2)}
+label.f small{font-weight:500;color:var(--ink3)}
+.in{width:100%;background:#0b281d;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:16px}
+.in:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:transparent}
+.in:disabled{opacity:.45}
+textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope, var(--ml), sans-serif}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.meta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink3);font-weight:500}
+.meta .over{color:var(--red2);font-weight:700}
+.switch{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink2);cursor:pointer;user-select:none}
+.switch input{appearance:none;width:44px;height:26px;border-radius:99px;background:#33594a;position:relative;margin:0;flex:none;cursor:pointer;transition:background .2s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch input:checked{background:var(--gold)}
+.switch input:checked::after{transform:translateX(18px)}
+.orn-pick{display:flex;gap:8px;justify-content:space-between}
+.orn-pick label{flex:1;display:grid;place-items:center;gap:2px;padding:8px 2px 6px;border-radius:12px;border:1px solid var(--line);background:#0b281d;cursor:pointer;font-size:11px;color:var(--ink3)}
+.orn-pick svg{width:30px;height:30px}
+.orn-pick input{position:absolute;opacity:0;pointer-events:none}
+.orn-pick input:checked + label{border-color:var(--gold);background:rgba(227,183,90,.12);color:var(--gold2)}
+.orn-pick input:focus-visible + label{outline:2px solid var(--gold)}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink2);line-height:1.45}
+.consent input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--gold)}
+.err{background:rgba(200,50,60,.16);border:1px solid rgba(226,84,92,.5);color:#ffd9db;border-radius:12px;padding:10px 12px;font-size:14px;margin:0}
+.guide{font-size:13px;color:var(--ink3);margin:0}
+.guide summary{cursor:pointer;color:var(--ink2)}
+.guide ul{margin:6px 0 0;padding-left:18px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,30px);opacity:0;z-index:50;
+  background:#fff8e6;color:#2a1d05;border-radius:14px;padding:12px 18px;font-weight:600;font-size:15px;box-shadow:0 10px 30px rgba(0,0,0,.4);
+  transition:.3s;width:max-content;max-width:min(440px,calc(100vw - 32px));text-align:center;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.demo-bar{position:relative;z-index:3;background:#3b2a08;color:var(--gold2);font-size:12.5px;text-align:center;padding:6px 10px}
+.demo-bar button{background:none;border:0;color:#fff;text-decoration:underline;font-size:12.5px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .snow{display:none}
+}
+</style>
+</head>
+<body>
+<div class="snow" aria-hidden="true" id="snow"></div>
+
+<!-- Ornament artwork, reused by tree, cards, picker -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="gRed" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ff7a80"/><stop offset=".55" stop-color="#c8323c"/><stop offset="1" stop-color="#7d1520"/></radialGradient>
+    <radialGradient id="gGold" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff1c4"/><stop offset=".5" stop-color="#e3b75a"/><stop offset="1" stop-color="#8f6a1f"/></radialGradient>
+    <radialGradient id="gBlue" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#d8ecff"/><stop offset=".55" stop-color="#5b9bd5"/><stop offset="1" stop-color="#244f80"/></radialGradient>
+    <linearGradient id="gTree" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9a68"/><stop offset="1" stop-color="#145a3b"/></linearGradient>
+    <linearGradient id="gTree2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a8c5e"/><stop offset="1" stop-color="#0f4a30"/></linearGradient>
+    <symbol id="o-bauble" viewBox="-12 -16 24 30"><rect x="-3.5" y="-15" width="7" height="5" rx="1.2" fill="#d9c08a"/><circle r="11" cy="1" fill="var(--f,url(#gRed))"/><ellipse cx="-4" cy="-3" rx="3" ry="2" fill="#fff" opacity=".55"/><path d="M-10 3q10 5 20 0" stroke="#fff" stroke-opacity=".35" stroke-width="1.4" fill="none"/></symbol>
+    <symbol id="o-star" viewBox="-13 -14 26 27"><path d="M0-12 3.6-3.9 12.4-3.7 5.4 1.8 7.8 10.4 0 5.4-7.8 10.4-5.4 1.8-12.4-3.7-3.6-3.9Z" fill="url(#gGold)" stroke="#fff3c9" stroke-width=".8" stroke-linejoin="round"/></symbol>
+    <symbol id="o-snowflake" viewBox="-13 -13 26 26"><circle r="11.5" fill="url(#gBlue)" opacity=".9"/><g stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M0-8v16M-6.9-4 6.9 4M-6.9 4 6.9-4"/><path d="M-2-6 0-4 2-6M-2 6 0 4 2 6M-6.2-1.2-4.2-1.5-4.8-3.4M6.2 1.2 4.2 1.5 4.8 3.4M6.2-1.2 4.2-1.5 4.8-3.4M-6.2 1.2-4.2 1.5-4.8 3.4" fill="none"/></g></symbol>
+    <symbol id="o-bell" viewBox="-12 -15 24 28"><circle cy="-12.5" r="2.2" fill="#c8323c"/><path d="M0-11c-5.5 0-7.5 4-7.5 9v4.5L-10 7h20l-2.5-4.5V-2c0-5-2-9-7.5-9Z" fill="url(#gGold)" stroke="#8f6a1f" stroke-width=".6"/><circle cy="9.5" r="2.4" fill="#8f6a1f"/><path d="M-4-5q1-3 3-3.5" stroke="#fff" stroke-opacity=".6" stroke-width="1.3" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="o-gift" viewBox="-12 -15 24 27"><rect x="-10" y="-6" width="20" height="17" rx="2" fill="url(#gRed)"/><rect x="-11" y="-9" width="22" height="5" rx="1.5" fill="#d8434c"/><rect x="-1.8" y="-9" width="3.6" height="20" fill="#f5d68f"/><path d="M0-9c-3-6-9-5-7-1.5 1.4 2 5 1.5 7 1.5 2 0 5.6.5 7-1.5C9-14 3-15 0-9Z" fill="#f5d68f"/></symbol>
+  </defs>
+</svg>
+
+<div id="demoBar" class="demo-bar" hidden>Preview mode — wishes stay on this phone only. <button id="demoReset">Reset demo</button></div>
+
+<div class="wrap">
+  <header>
+    <img src="/sadya/logo.png" alt="" onerror="this.style.display='none'">
+    <div class="org">PT Malayali Samajam<small>Prestige Tranquility · Bengaluru</small></div>
+    <button class="share-top" id="shareTop" aria-label="Share on WhatsApp">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 2.5 1 3 .8 3.6.7.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3ZM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg>Share</button>
+  </header>
+
+  <div class="hero">
+    <p class="greet" lang="ml">ക്രിസ്മസ് ആശംസകൾ</p>
+    <h1>Nammude <em>Christmas</em> 2026</h1>
+    <div class="count" aria-live="polite"><b id="count">0</b><span id="countLabel">wishes on our tree</span></div>
+  </div>
+
+  <div class="stage">
+    <svg id="tree" viewBox="0 0 400 500" role="group" aria-label="The Samajam Christmas tree. Each ornament is a wish."></svg>
+    <p class="hint" id="hint">Tap an ornament to read a wish</p>
+    <div class="pager" id="pager" hidden></div>
+    <p class="pager-note" id="pagerNote" hidden></p>
+  </div>
+
+  <div class="ctas">
+    <button class="btn btn-gold" id="openForm">✨ Add your wish</button>
+    <a class="btn btn-ghost" href="#wishes">Read wishes</a>
+    <p class="closed" id="closedNote" hidden>The Wish Tree is closed for new wishes. Thank you, everyone! 🎄</p>
+    <button class="btn btn-wa" id="shareTree">Invite your tower on WhatsApp</button>
+  </div>
+
+  <section id="towers-sec" aria-labelledby="th">
+    <h2 id="th">Which tower is glowing?</h2>
+    <p class="sub" id="towerSub">Wishes on the tree from each tower</p>
+    <div class="towers" id="towers"></div>
+  </section>
+
+  <section id="wishes" aria-labelledby="wh">
+    <h2 id="wh">All wishes</h2>
+    <p class="sub">Every ornament on the tree, newest first</p>
+    <div class="filters">
+      <select id="fTower" aria-label="Filter by tower"><option value="">All towers</option></select>
+      <select id="fSort" aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option></select>
+    </div>
+    <div class="cards" id="cards"></div>
+    <button class="btn btn-ghost more" id="more" hidden>Show more wishes</button>
+  </section>
+
+  <footer class="site">
+    <details id="guidelines">
+      <summary>Community guidelines &amp; privacy</summary>
+      <ul>
+        <li>Keep wishes warm and kind — this tree is for everyone in Tranquility, including children.</li>
+        <li>No advertising, links, phone numbers, politics or anything hurtful. Such wishes are not approved.</li>
+        <li>The Samajam committee reviews wishes before they go on the tree and may remove any wish.</li>
+        <li><b>Anonymous</b> hides your name from everyone visiting the site. Committee members can still see the name you typed.</li>
+        <li>We don't ask for your phone or email. We don't show IP addresses or any technical details publicly.</li>
+        <li>To have your wish taken down, tap <i>Report</i> on it or tell any committee member.</li>
+      </ul>
+    </details>
+    PT Malayali Samajam · Prestige Tranquility, Bengaluru<br>Nammude Christmas 2026 🎄
+  </footer>
+</div>
+
+<!-- Read a wish -->
+<dialog id="dlgWish" aria-labelledby="wTitle">
+  <div class="sheet">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3 id="wTitle" class="sr">A Christmas wish</h3>
+    <svg class="wish-orn" id="wOrn" aria-hidden="true"><use href="#o-bauble"/></svg>
+    <p class="pending-note" id="wPending" hidden>Waiting for the committee to approve — only you can see this ornament for now.</p>
+    <p class="wish-msg" id="wMsg"></p>
+    <p class="wish-by" id="wBy"></p>
+    <div class="wish-actions">
+      <button class="btn btn-wa" id="wShare">Share on WhatsApp</button>
+    </div>
+    <button class="report" id="wReport">Report this wish</button>
+  </div>
+</dialog>
+
+<!-- Submit a wish -->
+<dialog id="dlgForm" aria-labelledby="fTitle">
+  <div class="sheet">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3 id="fTitle">Hang your wish</h3>
+    <p class="sub" style="margin:0">Write in Malayalam or English — it becomes an ornament on our tree.</p>
+    <form id="form" novalidate>
+      <label class="f">Your wish
+        <textarea class="in" id="iMsg" maxlength="2000" required placeholder="എല്ലാവർക്കും ക്രിസ്മസ് ആശംസകൾ… / Merry Christmas to…"></textarea>
+        <span class="meta"><span id="iLang">Type with your phone's Malayalam or English keyboard</span><span id="iCount">0 / 500</span></span>
+      </label>
+      <div class="f" role="radiogroup" aria-label="Choose your ornament">
+        <span style="font-size:14px;font-weight:600;color:var(--ink2)">Pick your ornament</span>
+        <div class="orn-pick" id="ornPick"></div>
+      </div>
+      <label class="switch"><input type="checkbox" id="iAnon"> Post as Anonymous</label>
+      <div class="row2">
+        <label class="f">Your name <input class="in" id="iName" autocomplete="name" maxlength="60" placeholder="e.g. Anu Mathew"></label>
+        <label class="f">Tower
+          <select class="in" id="iTower" required><option value="">Choose</option></select>
+        </label>
+      </div>
+      <label class="f" id="famWrap">Family / house name <small>optional</small>
+        <input class="in" id="iFam" maxlength="60" placeholder="e.g. Kurian family">
+      </label>
+      <label class="consent"><input type="checkbox" id="iConsent"> <span>I agree my wish can be shown publicly on the Samajam Wish Tree after committee review, as per the <a href="#guidelines" id="gLink">guidelines</a>.</span></label>
+      <p class="err" id="fErr" role="alert" hidden></p>
+      <button class="btn btn-gold" id="fSubmit" type="submit">Hang it on the tree 🎄</button>
+    </form>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+// ===================================================================== setup
+const TOWERS = Array.from({ length: 17 }, (_, i) => `T${i + 1}`);
+const ORN = [["bauble", "Bauble"], ["star", "Star"], ["snowflake", "Snow"], ["bell", "Bell"], ["gift", "Gift"]];
+const FILLS = ["url(#gRed)", "url(#gGold)", "url(#gBlue)"];
+const PAGE = 12;
+const SITE = location.origin + location.pathname;
+const DEMO = new URLSearchParams(location.search).has("demo");
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const seg = new Intl.Segmenter("ml", { granularity: "grapheme" });
+const glen = (t) => { let n = 0; for (const _ of seg.segment(t || "")) n++; return n; };
+const isMl = (t) => { const m = (t.match(/[ഀ-ൿ]/g) || []).length, l = (t.match(/[A-Za-z]/g) || []).length; return m > 0 && m >= l * 0.5; };
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const deviceId = store.get("wt-device", null) || (() => { const id = crypto.randomUUID(); store.set("wt-device", id); return id; })();
+function hashStr(s) { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 4200); }
+
+// ===================================================================== data layer
+async function liveApi() {
+  const [{ initializeApp }, fs, fns, ac, cfgMod] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js"),
+    import("/sadya/firebase-config.js"),
+  ]);
+  const app = initializeApp(cfgMod.firebaseConfig);
+  if (cfgMod.APP_CHECK_SITE_KEY) ac.initializeAppCheck(app, { provider: new ac.ReCaptchaV3Provider(cfgMod.APP_CHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
+  const db = fs.getFirestore(app);
+  const f = fns.getFunctions(app, cfgMod.FUNCTIONS_REGION);
+  const call = (n) => fns.httpsCallable(f, n);
+  let unsub = null, wishCb = null;
+  const watchEvent = (event) => {
+    if (unsub) unsub();
+    unsub = fs.onSnapshot(fs.query(fs.collection(db, "wishPublic"), fs.where("event", "==", event)), (snap) => {
+      wishCb?.(snap.docs.map((d) => { const x = d.data(); return { id: d.id, ...x, at: x.approvedAt?.toMillis?.() ?? Date.now() }; }));
+    }, (e) => console.error(e));
+  };
+  return {
+    onConfig(cb) {
+      fs.onSnapshot(fs.doc(db, "config/wishtree"), (s) => {
+        const c = { event: "nammude-christmas-2026", open: true, ...(s.exists() ? s.data() : {}) };
+        watchEvent(c.event); cb(c);
+      }, () => { watchEvent("nammude-christmas-2026"); cb({ event: "nammude-christmas-2026", open: true }); });
+    },
+    onWishes(cb) { wishCb = cb; },
+    async submit(d) { return (await call("submitWish")({ ...d, deviceId })).data; },
+    async report(id) { return (await call("reportWish")({ id, deviceId })).data; },
+  };
+}
+const api = DEMO ? (await import("./demo.js")).demo : await liveApi();
+if (DEMO) { $("demoBar").hidden = false; $("demoReset").onclick = () => { api.reset(); localStorage.removeItem("wt-mine"); location.reload(); }; }
+
+// ===================================================================== tree geometry
+const CX = 200;
+const TIERS = [ // apex y, base y, half-width at base
+  { a: 52, b: 190, h: 88 },
+  { a: 118, b: 316, h: 134 },
+  { a: 214, b: 446, h: 178 },
+];
+const halfAt = (t, y) => (y < t.a || y > t.b ? -1 : (t.h * (y - t.a)) / (t.b - t.a));
+function insideTree(x, y, m) { return TIERS.some((t) => y <= t.b - 10 && y >= t.a + 22 && Math.abs(x - CX) <= halfAt(t, y) - m); }
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const SLOTS = (() => {
+  const pts = []; let row = 0;
+  for (let y = 84; y <= 432; y += 23, row++) {
+    const off = (row % 2) * 13;
+    for (let x = CX - 180 + off; x <= CX + 180; x += 26) if (insideTree(x, y, 14)) pts.push([x, y]);
+  }
+  const r = rng(2026);
+  for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
+  return pts.map(([x, y]) => [x + (r() - 0.5) * 6, y + (r() - 0.5) * 5]);
+})();
+const PER_TREE = SLOTS.length;
+
+function treeArt() {
+  const tier = (t, fill) => `<path class="tier" fill="${fill}" d="M${CX} ${t.a} L${CX + t.h} ${t.b} Q${CX} ${t.b + 22} ${CX - t.h} ${t.b} Z"/>`;
+  let lights = "";
+  const garlands = [[118, 150, 0.8], [210, 268, 0.8], [306, 390, 0.85], [360, 440, 0.95]];
+  const cols = ["#f5d68f", "#ff6b73", "#9fd8ff", "#fff3c9", "#ffb347"];
+  garlands.forEach(([y1, y2, k], gi) => {
+    const t = TIERS.find((T) => y2 <= T.b + 4) || TIERS[2];
+    const x1 = CX - halfAt(t, y1) * k, x2 = CX + halfAt(t, y2) * k, qy = (y1 + y2) / 2 + 26;
+    lights += `<path d="M${x1} ${y1} Q${CX} ${qy} ${x2} ${y2}" stroke="#f5d68f" stroke-opacity=".35" stroke-width="1.2" fill="none"/>`;
+    for (let i = 0; i <= 12; i++) {
+      const s = i / 12, x = (1 - s) ** 2 * x1 + 2 * (1 - s) * s * CX + s * s * x2, y = (1 - s) ** 2 * y1 + 2 * (1 - s) * s * qy + s * s * y2;
+      lights += `<circle class="light" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${cols[(i + gi) % 5]}" style="--dl:${((i * 0.37 + gi * 0.5) % 2.4).toFixed(2)}s"/>`;
+    }
+  });
+  return `
+    <ellipse cx="${CX}" cy="476" rx="170" ry="14" fill="#000" opacity=".25"/>
+    <rect x="${CX - 18}" y="440" width="36" height="34" rx="4" fill="#5a3a22"/>
+    <rect x="${CX - 18}" y="440" width="36" height="8" fill="#3f2816"/>
+    ${tier(TIERS[2], "url(#gTree2)")}${tier(TIERS[1], "url(#gTree)")}${tier(TIERS[0], "url(#gTree)")}
+    <g>${lights}</g>
+    <g class="topstar"><path transform="translate(${CX} 44) scale(1.9)" d="M0-12 3.6-3.9 12.4-3.7 5.4 1.8 7.8 10.4 0 5.4-7.8 10.4-5.4 1.8-12.4-3.7-3.6-3.9Z" fill="url(#gGold)" stroke="#fff3c9" stroke-width=".6"/></g>
+    <g id="orns"></g>`;
+}
+
+// ===================================================================== state & render
+let cfg = { open: true }, wishes = [], treeIdx = 0, shown = PAGE, seenIds = null;
+let mine = store.get("wt-mine", []); // [{id,status,message,tower,ornament,name,at}] — this phone only
+
+function fillFor(w) { return FILLS[hashStr(w.id) % FILLS.length]; }
+function ornUse(w, size = 24) {
+  const f = w.ornament === "bauble" || w.ornament === "gift" ? ` style="--f:${fillFor(w)}"` : "";
+  return `<use href="#o-${esc(w.ornament || "bauble")}" x="${-size / 2}" y="${-size / 2}" width="${size}" height="${size}"${f}/>`;
+}
+const byLine = (w) => `${w.name ? esc(w.name) : "Anonymous"} · ${esc(w.tower)}`;
+
+function renderTree() {
+  const g = $("orns");
+  const maxSlot = Math.max(-1, ...wishes.map((w) => w.slot ?? -1));
+  const pend = mine.filter((m) => m.status === "PENDING" && !wishes.some((w) => w.id === m.id));
+  const trees = Math.max(1, Math.ceil((maxSlot + 1 + pend.length) / PER_TREE));
+  if (treeIdx >= trees) treeIdx = trees - 1;
+  const mineIds = new Set(mine.map((m) => m.id));
+  const items = wishes.map((w) => ({ ...w, pending: false }));
+  pend.forEach((m, i) => items.push({ ...m, slot: maxSlot + 1 + i, pending: true }));
+
+  let html = "";
+  for (const w of items) {
+    if (Math.floor(w.slot / PER_TREE) !== treeIdx) continue;
+    const [x, y] = SLOTS[w.slot % PER_TREE];
+    const cls = ["orn", hashStr(w.id) % 3 === 0 ? "sway" : "", mineIds.has(w.id) ? "mine" : "", w.pending ? "pending" : "", seenIds && !seenIds.has(w.id) ? "new" : ""].join(" ");
+    const label = w.pending ? "Your wish, waiting for approval" : `Wish from ${w.name || "Anonymous"}, ${w.tower}`;
+    html += `<g class="${cls}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" data-id="${esc(w.id)}" role="button" tabindex="0" aria-label="${esc(label)}" style="--sw:${(2.6 + (hashStr(w.id) % 20) / 10).toFixed(1)}s">
+      <circle class="hit" r="14" fill="transparent"/>${mineIds.has(w.id) || w.pending ? '<circle class="ring" r="15"/>' : ""}<g class="body">${ornUse(w, 25)}</g></g>`;
+  }
+  g.innerHTML = html;
+  seenIds = new Set(items.map((w) => w.id));
+
+  const pager = $("pager");
+  pager.hidden = trees < 2; $("pagerNote").hidden = trees < 2;
+  if (trees > 1) {
+    pager.innerHTML = Array.from({ length: trees }, (_, i) => `<button data-tree="${i}" aria-current="${i === treeIdx}">Tree ${i + 1}</button>`).join("");
+    $("pagerNote").textContent = trees === 2 ? "Our first tree filled up — so we planted another! 🎄" : `${trees} trees full of wishes! 🎄`;
+  }
+  $("hint").textContent = wishes.length ? "Tap an ornament to read a wish" : "Be the first to hang a wish!";
+}
+
+function animateCount(n) {
+  const el = $("count"), from = +el.textContent || 0, t0 = performance.now();
+  const step = (t) => { const p = Math.min(1, (t - t0) / 700); el.textContent = Math.round(from + (n - from) * (1 - (1 - p) ** 3)); if (p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+  $("countLabel").textContent = n === 1 ? "wish on our tree" : "wishes on our tree";
+}
+
+function renderTowers() {
+  const c = Object.fromEntries(TOWERS.map((t) => [t, 0]));
+  wishes.forEach((w) => { if (w.tower in c) c[w.tower]++; });
+  const rows = TOWERS.map((t) => [t, c[t]]).sort((a, b) => b[1] - a[1] || TOWERS.indexOf(a[0]) - TOWERS.indexOf(b[0]));
+  const max = Math.max(1, rows[0][1]);
+  $("towers").innerHTML = rows.map(([t, n], i) =>
+    `<div class="trow ${i === 0 && n > 0 ? "lead" : ""} ${n === 0 ? "zero" : ""}"><span class="tc">${t}</span><span class="bar"><i style="--w:${(n / max) * 100}%"></i></span><span class="n">${n}</span></div>`).join("");
+  const silent = rows.filter((r) => r[1] === 0).length;
+  $("towerSub").textContent = rows[0][1] > 0
+    ? `${rows[0][0]} is leading!${silent ? ` ${silent} tower${silent > 1 ? "s" : ""} still waiting for a first wish.` : " Every tower is on the tree!"}`
+    : "Wishes on the tree from each tower";
+}
+
+function renderCards() {
+  const ft = $("fTower").value, asc = $("fSort").value === "old";
+  const list = wishes.filter((w) => !ft || w.tower === ft).sort((a, b) => (asc ? a.at - b.at : b.at - a.at));
+  $("cards").innerHTML = list.length ? list.slice(0, shown).map((w) => `
+    <article class="card">
+      <p lang="${w.language === "ml" ? "ml" : "en"}">${esc(w.message)}</p>
+      <footer><span class="who">${w.name ? esc(w.name) : "Anonymous"}</span><span class="tag">${esc(w.tower)}</span><span class="tag">${w.language === "ml" ? "മലയാളം" : "English"}</span>
+        <svg class="ic" viewBox="-14 -14 28 28" aria-hidden="true">${ornUse(w, 26)}</svg></footer>
+    </article>`).join("") : `<div class="empty">${ft ? `No wishes from ${ft} yet — be the first!` : "No wishes yet. Hang the first one!"}</div>`;
+  $("more").hidden = list.length <= shown;
+}
+
+function renderAll() { renderTree(); renderTowers(); renderCards(); animateCount(wishes.length); }
+
+// ===================================================================== read a wish
+let current = null;
+function openWish(id) {
+  const w = wishes.find((x) => x.id === id) || mine.find((x) => x.id === id);
+  if (!w) return;
+  current = w;
+  const pending = !wishes.some((x) => x.id === id);
+  $("wOrn").innerHTML = `<svg viewBox="-14 -14 28 28">${ornUse(w, 26)}</svg>`;
+  const m = $("wMsg"); m.textContent = w.message; m.lang = w.language === "ml" || isMl(w.message) ? "ml" : "en";
+  $("wBy").innerHTML = `— <b>${w.name ? esc(w.name) : "Anonymous"}</b>, ${esc(w.tower)}`;
+  $("wPending").hidden = !pending; $("wShare").hidden = pending; $("wReport").hidden = pending || mine.some((x) => x.id === id);
+  $("dlgWish").showModal();
+  history.replaceState(null, "", pending ? location.pathname + location.search : `#w=${id}`);
+}
+function waOpen(text) { window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener"); }
+const treeText = () => `🎄 *Nammude Christmas 2026*\nThe PT Malayali Samajam Wish Tree is up! ${wishes.length} wishes already — hang yours in Malayalam or English:\n${SITE}${DEMO ? "?demo" : ""}`;
+$("wShare").onclick = () => {
+  const w = current; const snippet = [...seg.segment(w.message)].slice(0, 90).map((s) => s.segment).join("");
+  waOpen(`🎄 "${snippet}${glen(w.message) > 90 ? "…" : ""}"\n— ${w.name || "Someone"}, ${w.tower}\n\nRead it on the PTMS Wish Tree and hang your own:\n${SITE}${DEMO ? "?demo" : ""}#w=${w.id}`);
+};
+$("wReport").onclick = async () => {
+  if (!confirm("Report this wish to the Samajam committee?")) return;
+  try { await api.report(current.id); toast("Thanks — the committee will take a look."); } catch { toast("Couldn't send the report. Please try again."); }
+  $("dlgWish").close();
+};
+$("shareTree").onclick = $("shareTop").onclick = () => waOpen(treeText());
+
+// ===================================================================== form
+$("iTower").innerHTML += TOWERS.map((t) => `<option>${t}</option>`).join("");
+$("fTower").innerHTML += TOWERS.map((t) => `<option>${t}</option>`).join("");
+$("ornPick").innerHTML = ORN.map(([k, l], i) =>
+  `<input type="radio" name="orn" id="o_${k}" value="${k}" ${i === 0 ? "checked" : ""}><label for="o_${k}"><svg viewBox="-14 -14 28 28" aria-hidden="true">${ornUse({ id: "pick" + k, ornament: k }, 26)}</svg>${l}</label>`).join("");
+const remembered = store.get("wt-me", {});
+if (remembered.tower) $("iTower").value = remembered.tower;
+if (remembered.name) $("iName").value = remembered.name;
+if (remembered.fam) $("iFam").value = remembered.fam;
+
+function syncForm() {
+  const msg = $("iMsg").value, n = glen(msg.trim());
+  $("iCount").textContent = `${n} / 500`; $("iCount").className = n > 500 ? "over" : "";
+  $("iLang").textContent = msg.trim() ? (isMl(msg) ? "മലയാളം ✓" : "English ✓") : "Type with your phone's Malayalam or English keyboard";
+  const anon = $("iAnon").checked;
+  $("iName").disabled = anon; $("iFam").disabled = anon;
+  $("famWrap").style.display = anon ? "none" : "";
+}
+["input", "change"].forEach((e) => $("form").addEventListener(e, syncForm));
+syncForm();
+
+$("openForm").onclick = () => { $("fErr").hidden = true; $("dlgForm").showModal(); setTimeout(() => $("iMsg").focus(), 50); };
+$("gLink").onclick = (e) => { e.preventDefault(); $("dlgForm").close(); $("guidelines").open = true; $("guidelines").scrollIntoView({ behavior: "smooth" }); };
+
+function formError(m) { const e = $("fErr"); e.textContent = m; e.hidden = false; e.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+$("form").onsubmit = async (e) => {
+  e.preventDefault();
+  const d = {
+    message: $("iMsg").value.trim(), isAnonymous: $("iAnon").checked,
+    displayName: $("iAnon").checked ? "" : $("iName").value.trim(), familyName: $("iAnon").checked ? "" : $("iFam").value.trim(),
+    tower: $("iTower").value, ornament: document.querySelector("input[name=orn]:checked")?.value, consent: $("iConsent").checked,
+  };
+  const n = glen(d.message);
+  if (n < 5) return formError("Your wish needs at least 5 letters.");
+  if (n > 500) return formError(`Please shorten your wish to 500 letters (now ${n}).`);
+  if (!d.isAnonymous && glen(d.displayName) < 2) return formError("Please enter your name, or switch on Anonymous.");
+  if (!d.tower) return formError("Please choose your tower.");
+  if (!d.consent) return formError("Please tick the box to agree to the guidelines.");
+  $("fErr").hidden = true;
+  const btn = $("fSubmit"); btn.disabled = true; btn.textContent = "Hanging your wish…";
+  try {
+    const r = await api.submit(d);
+    store.set("wt-me", { tower: d.tower, name: d.displayName || remembered.name || "", fam: d.familyName || remembered.fam || "" });
+    mine.push({ id: r.id, status: r.status, message: d.message, tower: d.tower, ornament: r.ornament || d.ornament,
+      name: d.isAnonymous ? "" : [d.displayName, d.familyName].filter(Boolean).join(" · "), language: r.language, at: Date.now() });
+    store.set("wt-mine", mine.slice(-20));
+    $("iMsg").value = ""; $("iConsent").checked = false; syncForm();
+    $("dlgForm").close();
+    // show the tree page that holds the new ornament
+    const slot = r.slot ?? (Math.max(-1, ...wishes.map((w) => w.slot ?? -1)) + 1);
+    treeIdx = Math.floor(slot / PER_TREE);
+    renderTree();
+    $("tree").scrollIntoView({ behavior: "smooth", block: "center" });
+    toast(r.status === "APPROVED" ? "Your wish is on the tree! ✨ Look for the glowing ring." : "Thank you! 🎄 Your wish will appear for everyone once the committee approves it.");
+  } catch (err) {
+    formError(!err?.message || /^(internal|INTERNAL)$/.test(err.message) ? "Something went wrong. Please check your connection and try again." : err.message);
+  } finally { btn.disabled = false; btn.textContent = "Hang it on the tree 🎄"; }
+};
+
+// ===================================================================== wiring
+$("tree").innerHTML = treeArt();
+$("tree").addEventListener("click", (e) => { const o = e.target.closest(".orn"); if (o) openWish(o.dataset.id); });
+$("tree").addEventListener("keydown", (e) => { const o = e.target.closest(".orn"); if (o && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openWish(o.dataset.id); } });
+$("pager").addEventListener("click", (e) => { const b = e.target.closest("[data-tree]"); if (b) { treeIdx = +b.dataset.tree; seenIds = null; renderTree(); } });
+document.querySelectorAll("dialog").forEach((d) => {
+  d.addEventListener("click", (e) => { if (e.target === d || e.target.closest("[data-close]")) d.close(); });
+  d.addEventListener("close", () => { if (d.id === "dlgWish" && location.hash) history.replaceState(null, "", location.pathname + location.search); });
+});
+$("fTower").onchange = $("fSort").onchange = () => { shown = PAGE; renderCards(); };
+$("more").onclick = () => { shown += PAGE; renderCards(); };
+
+// snow
+(() => {
+  const s = $("snow"); let h = "";
+  for (let i = 0; i < 36; i++) {
+    const r = rng(i + 7);
+    h += `<i style="left:${(r() * 100).toFixed(1)}%;--s:${(2 + r() * 4).toFixed(1)}px;--o:${(0.25 + r() * 0.5).toFixed(2)};--d:${(9 + r() * 12).toFixed(1)}s;--dl:-${(r() * 20).toFixed(1)}s;--x:${((r() - 0.5) * 80).toFixed(0)}px"></i>`;
+  }
+  s.innerHTML = h;
+})();
+
+let firstLoad = true;
+api.onConfig((c) => {
+  cfg = c;
+  $("openForm").hidden = !c.open; $("closedNote").hidden = !!c.open;
+});
+api.onWishes((list) => {
+  wishes = list;
+  // my pending wishes that got approved → mark them
+  let changed = false;
+  mine.forEach((m) => { if (m.status === "PENDING" && list.some((w) => w.id === m.id)) { m.status = "APPROVED"; changed = true; } });
+  if (changed) { store.set("wt-mine", mine); if (!firstLoad) toast("Your wish was approved and is now on the tree for everyone! 🎉"); }
+  if (firstLoad) seenIds = new Set(list.map((w) => w.id)); // no pop animation on first paint
+  renderAll();
+  if (firstLoad) {
+    firstLoad = false;
+    const m = location.hash.match(/^#w=([A-Za-z0-9]+)/);
+    if (m) { const w = wishes.find((x) => x.id === m[1]); if (w) { treeIdx = Math.floor(w.slot / PER_TREE); renderTree(); openWish(w.id); } }
+  }
+});
+</script>
+</body>
+</html>

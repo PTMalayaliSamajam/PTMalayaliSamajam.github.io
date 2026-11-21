@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Wish Tree · Committee</title>
+<meta name="theme-color" content="#0a2219">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a2219;--panel:#123a2b;--panel2:#0e3024;--line:#24533f;--gold:#e3b75a;--gold2:#f5d68f;--red:#c8323c;--red2:#e2545c;--green:#2f9a68;
+  --ink:#f4efe2;--ink2:#c9d6cc;--ink3:#8fa89a;--ml:"Noto Sans Malayalam",sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,var(--ml),system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+:lang(ml){font-family:var(--ml)}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 60px}
+.top{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.top h1{font-family:Fraunces,serif;font-size:20px;margin:0}
+.top .who{margin-left:auto;font-size:12.5px;color:var(--ink3);text-align:right}
+.top .who button{background:none;border:0;color:var(--gold2);text-decoration:underline;padding:0;font-size:12.5px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0;scrollbar-width:none;position:sticky;top:59px;background:var(--bg);z-index:4}
+.tabs button{flex:none;background:var(--panel);border:1px solid var(--line);color:var(--ink2);border-radius:99px;padding:8px 14px;font-weight:600;font-size:14px}
+.tabs button[aria-selected=true]{background:var(--gold);color:#2a1d05;border-color:var(--gold)}
+.tabs .badge{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:99px;background:var(--red);color:#fff;font-size:12px;text-align:center}
+.tabs button[aria-selected=true] .badge{background:#2a1d05;color:var(--gold2)}
+.tools{display:flex;gap:8px;margin:0 0 12px}
+.in{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
+select.in{width:auto}
+.list{display:grid;gap:10px}
+.w{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.w.flagged{border-color:rgba(226,84,92,.6)}
+.w .msg{margin:0 0 10px;white-space:pre-line;overflow-wrap:anywhere;font-size:16px}
+.w .msg:lang(ml){line-height:1.75}
+.meta{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:13px;color:var(--ink3);align-items:center}
+.meta b{color:var(--ink)}
+.chip{border:1px solid var(--line);border-radius:99px;padding:1px 8px;font-size:12px;color:var(--ink2)}
+.chip.red{border-color:var(--red2);color:#ffc7ca;background:rgba(200,50,60,.15)}
+.chip.gold{border-color:var(--gold);color:var(--gold2)}
+.acts{display:flex;gap:8px;margin-top:12px}
+.b{border:0;border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px;min-height:42px}
+.b-ok{background:var(--green);color:#fff;flex:1}
+.b-no{background:transparent;border:1px solid var(--red2);color:#ffc7ca}
+.b-gh{background:transparent;border:1px solid var(--line);color:var(--ink2)}
+.b-gold{background:var(--gold);color:#2a1d05}
+.b:disabled{opacity:.5}
+.empty{color:var(--ink3);text-align:center;padding:40px 10px;border:1px dashed var(--line);border-radius:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.tile b{display:block;font-family:Fraunces,serif;font-size:28px;color:var(--gold2);font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;color:var(--ink3)}
+h2{font-family:Fraunces,serif;font-size:19px;margin:22px 0 10px}
+.bars{display:grid;gap:6px}
+.br{display:grid;grid-template-columns:52px 1fr 64px;gap:10px;align-items:center;font-size:13px}
+.br .t{height:14px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;display:flex}
+.br .t i{display:block;height:100%}
+.br .t i.a{background:var(--green)}.br .t i.p{background:var(--gold)}
+.br .n{text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink3);margin:-4px 0 10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.cols{display:flex;align-items:flex-end;gap:4px;height:140px;border-bottom:1px solid var(--line);padding-top:16px}
+.cols div{flex:1;background:var(--green);border-radius:4px 4px 0 0;position:relative;min-height:2px}
+.cols div span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink2)}
+.colx{display:flex;gap:4px;font-size:10.5px;color:var(--ink3)}.colx span{flex:1;text-align:center}
+.split{display:flex;height:30px;border-radius:10px;overflow:hidden;font-size:13px;font-weight:700}
+.split div{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;padding:0 6px}
+.set{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:16px}
+.sw{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.sw input{appearance:none;width:44px;height:26px;border-radius:99px;background:#33594a;position:relative;margin:2px 0 0;flex:none;cursor:pointer}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked{background:var(--gold)}.sw input:checked::after{transform:translateX(18px)}
+.sw small{display:block;color:var(--ink3);font-size:13px}
+label.f{display:grid;gap:6px;font-weight:600}
+label.f small{font-weight:500;color:var(--ink3)}
+.login{max-width:380px;margin:12vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;display:grid;gap:12px}
+.login h1{font-family:Fraunces,serif;margin:0;font-size:24px}
+.err{color:#ffc7ca;font-size:14px;margin:0}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,30px);opacity:0;background:#fff8e6;color:#2a1d05;border-radius:12px;padding:10px 16px;font-weight:600;transition:.25s;z-index:20;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.demo{background:#3b2a08;color:var(--gold2);font-size:12.5px;text-align:center;padding:6px}
+</style>
+</head>
+<body>
+<div class="demo" id="demoBar" hidden>Preview mode — uses demo data stored in this browser (same data as index.html?demo).</div>
+
+<form class="login" id="login" hidden>
+  <h1>🎄 Wish Tree committee</h1>
+  <p style="margin:0;color:var(--ink3);font-size:14px">Sign in with your Samajam volunteer account (same as the Sadya gate app).</p>
+  <input class="in" id="lEmail" type="email" autocomplete="username" placeholder="Email" required>
+  <input class="in" id="lPass" type="password" autocomplete="current-password" placeholder="Password" required>
+  <p class="err" id="lErr" hidden></p>
+  <button class="b b-gold" type="submit">Sign in</button>
+</form>
+
+<div class="wrap" id="app" hidden>
+  <div class="top"><h1>🎄 Wish Tree</h1><div class="who"><span id="whoEmail"></span><br><button id="logout">Sign out</button></div></div>
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="PENDING" aria-selected="true">To review <span class="badge" id="bPending">0</span></button>
+    <button role="tab" data-tab="APPROVED" aria-selected="false">On the tree</button>
+    <button role="tab" data-tab="REJECTED" aria-selected="false">Rejected / removed</button>
+    <button role="tab" data-tab="stats" aria-selected="false">Participation</button>
+    <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
+  </div>
+
+  <div id="pList">
+    <div class="tools">
+      <input class="in" id="q" type="search" placeholder="Search name, family, tower or message">
+      <select class="in" id="qTower"><option value="">All towers</option></select>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+
+  <div id="pStats" hidden>
+    <div class="tiles" id="tiles"></div>
+    <h2>Tower participation</h2>
+    <div class="legend"><span><i style="background:var(--green)"></i>On the tree</span><span><i style="background:var(--gold)"></i>Waiting for review</span></div>
+    <div class="bars" id="tBars"></div>
+    <h2>Wishes per day (last 14 days)</h2>
+    <div class="cols" id="days"></div><div class="colx" id="daysX"></div>
+    <h2>Malayalam vs English</h2><div class="split" id="sLang"></div>
+    <h2>Anonymous vs named</h2><div class="split" id="sAnon"></div>
+    <h2>Export</h2>
+    <button class="b b-gh" id="csv">Download all wishes (CSV)</button>
+  </div>
+
+  <div id="pSettings" hidden>
+    <div class="set">
+      <label class="sw"><input type="checkbox" id="sOpen"><span><b>Accepting new wishes</b><small>Switch off after Christmas to freeze the tree as a keepsake.</small></span></label>
+      <label class="sw"><input type="checkbox" id="sAuto"><span><b>Auto-approve clean wishes</b><small>Wishes go straight on the tree unless they contain a link, a phone number, a blocked word or repeated characters — those wait here for review. Recommended for 24–25 Dec if no one can moderate.</small></span></label>
+      <label class="f">Hide a wish after this many reports
+        <input class="in" id="sReports" type="number" min="1" max="20" style="max-width:120px"></label>
+      <label class="f">Blocked words <small>One per line, English or Malayalam. Wishes containing these always wait for review. Only committee members can see this list.</small>
+        <textarea class="in" id="sWords" rows="6"></textarea></label>
+      <button class="b b-gold" id="sSave">Save settings</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const TOWERS = Array.from({ length: 17 }, (_, i) => `T${i + 1}`);
+const DEMO = new URLSearchParams(location.search).has("demo");
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ms = (t) => (typeof t === "number" ? t : t?.toMillis?.() ?? null);
+const when = (t) => { const v = ms(t); return v ? new Date(v).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "just now"; };
+function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 3000); }
+const FLAG = { "link": "Has a link", "phone-number": "Has a phone number", "blocked-word": "Blocked word", "repeated-chars": "Repeated characters", "reported": "Reported by visitors" };
+
+// ===================================================================== data layer
+async function liveApi() {
+  const [{ initializeApp }, A, F, Fn, AC, C] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js"),
+    import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js"),
+    import("/sadya/firebase-config.js"),
+  ]);
+  const app = initializeApp(C.firebaseConfig);
+  if (C.APP_CHECK_SITE_KEY) AC.initializeAppCheck(app, { provider: new AC.ReCaptchaV3Provider(C.APP_CHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
+  const auth = A.getAuth(app), db = F.getFirestore(app), fns = Fn.getFunctions(app, C.FUNCTIONS_REGION);
+  let event = "nammude-christmas-2026", unsubAll = null, allCb = null;
+  const watchAll = () => {
+    unsubAll?.();
+    unsubAll = F.onSnapshot(F.query(F.collection(db, "wishes"), F.where("event", "==", event)),
+      (s) => allCb?.(s.docs.map((d) => ({ id: d.id, ...d.data() }))), (e) => toast("Can't load wishes: " + e.code));
+  };
+  return {
+    onAuth(cb) {
+      A.onAuthStateChanged(auth, async (u) => {
+        if (!u) return cb(null);
+        const isAdmin = (await F.getDoc(F.doc(db, "admins", u.uid)).catch(() => null))?.exists();
+        if (!isAdmin) { await A.signOut(auth); return cb(null, "This account is not a Samajam admin."); }
+        cb({ email: u.email });
+      });
+    },
+    signIn: (e, p) => A.signInWithEmailAndPassword(auth, e, p),
+    signOut: () => A.signOut(auth),
+    onConfig(cb) {
+      F.onSnapshot(F.doc(db, "config/wishtree"), (s) => {
+        const c = { event: "nammude-christmas-2026", open: true, autoApprove: false, reportThreshold: 3, ...(s.exists() ? s.data() : {}) };
+        if (c.event !== event || !unsubAll) { event = c.event; if (allCb) watchAll(); }
+        cb(c);
+      });
+    },
+    onAll(cb) { allCb = cb; watchAll(); },
+    onSettings(cb) { F.onSnapshot(F.doc(db, "wishSettings/private"), (s) => cb(s.exists() ? s.data() : { blockedWords: [] })); },
+    saveConfig: (p) => F.setDoc(F.doc(db, "config/wishtree"), p, { merge: true }),
+    saveSettings: (p) => F.setDoc(F.doc(db, "wishSettings/private"), p, { merge: true }),
+    async moderate(id, action, remarks) { return (await Fn.httpsCallable(fns, "moderateWish")({ id, action, remarks })).data; },
+  };
+}
+let api;
+if (DEMO) {
+  const { demo } = await import("./demo.js");
+  api = { ...demo, onAuth: (cb) => cb({ email: "demo@ptms (preview)" }), signOut: () => location.reload() };
+  $("demoBar").hidden = false;
+} else api = await liveApi();
+
+// ===================================================================== state
+let all = [], cfg = {}, tab = "PENDING";
+
+function card(w) {
+  const flags = (w.flags || []).map((f) => `<span class="chip red">${esc(FLAG[f] || f)}</span>`).join("");
+  const reps = (w.reporters || []).length && w.status === "APPROVED" ? `<span class="chip red">${w.reporters.length} report${w.reporters.length > 1 ? "s" : ""}</span>` : "";
+  const name = w.displayName ? esc(w.displayName) : "<i>no name</i>";
+  let acts = "";
+  if (w.status === "PENDING") acts = `<button class="b b-ok" data-a="approve">Approve ✓</button><button class="b b-no" data-a="reject">Reject</button>`;
+  if (w.status === "APPROVED") acts = `<button class="b b-no" data-a="remove">Remove from tree</button>`;
+  if (w.status === "REJECTED" || w.status === "REMOVED") acts = `<button class="b b-gh" data-a="approve">Approve after all</button>`;
+  return `<article class="w ${flags || reps ? "flagged" : ""}" data-id="${esc(w.id)}">
+    <p class="msg" lang="${w.language === "ml" ? "ml" : "en"}">${esc(w.message)}</p>
+    <div class="meta"><b>${name}</b>${w.familyName ? `<span>${esc(w.familyName)}</span>` : ""}<span class="chip">${esc(w.tower)}</span>
+      ${w.isAnonymous ? '<span class="chip gold">Shown as Anonymous</span>' : ""}<span class="chip">${w.language === "ml" ? "മലയാളം" : "English"}</span>
+      <span>${when(w.createdAt)}</span>${w.status !== "PENDING" && w.status !== "APPROVED" ? `<span class="chip">${w.status.toLowerCase()}</span>` : ""}
+      ${w.approvedBy === "auto" ? '<span class="chip">auto-approved</span>' : ""}${flags}${reps}</div>
+    <div class="acts">${acts}</div></article>`;
+}
+
+function renderList() {
+  const q = $("q").value.trim().toLowerCase(), t = $("qTower").value;
+  const want = tab === "REJECTED" ? ["REJECTED", "REMOVED"] : [tab];
+  let list = all.filter((w) => want.includes(w.status) && (!t || w.tower === t)
+    && (!q || `${w.displayName} ${w.familyName} ${w.tower} ${w.message}`.toLowerCase().includes(q)));
+  // queue: oldest first, flagged on top; others: newest first
+  list.sort(tab === "PENDING" ? (a, b) => (b.flags?.length ? 1 : 0) - (a.flags?.length ? 1 : 0) || (ms(a.createdAt) ?? 9e15) - (ms(b.createdAt) ?? 9e15)
+    : (a, b) => (ms(b.createdAt) ?? 9e15) - (ms(a.createdAt) ?? 9e15));
+  $("list").innerHTML = list.length ? list.map(card).join("")
+    : `<div class="empty">${tab === "PENDING" ? "All caught up — nothing to review 🎉" : "Nothing here."}</div>`;
+}
+
+function split(el, a, b, la, lb, ca, cb) {
+  const tot = a + b || 1;
+  el.innerHTML = `<div style="width:${(a / tot) * 100}%;background:${ca};color:#fff">${la} ${a}</div><div style="width:${(b / tot) * 100}%;background:${cb};color:#2a1d05">${lb} ${b}</div>`;
+}
+
+function renderStats() {
+  const c = (s) => all.filter((w) => w.status === s).length;
+  const tiles = [["Total received", all.length], ["On the tree", c("APPROVED")], ["To review", c("PENDING")], ["Rejected", c("REJECTED")], ["Removed", c("REMOVED")],
+    ["Towers taking part", new Set(all.filter((w) => w.status === "APPROVED").map((w) => w.tower)).size + " / 17"]];
+  $("tiles").innerHTML = tiles.map(([l, n]) => `<div class="tile"><b>${n}</b><span>${l}</span></div>`).join("");
+
+  const per = TOWERS.map((t) => ({ t, a: all.filter((w) => w.tower === t && w.status === "APPROVED").length, p: all.filter((w) => w.tower === t && w.status === "PENDING").length }));
+  const max = Math.max(1, ...per.map((x) => x.a + x.p));
+  $("tBars").innerHTML = per.sort((x, y) => y.a + y.p - (x.a + x.p)).map((x) =>
+    `<div class="br"><span>${x.t}</span><span class="t"><i class="a" style="width:${(x.a / max) * 100}%"></i><i class="p" style="width:${(x.p / max) * 100}%"></i></span><span class="n">${x.a}${x.p ? ` +${x.p}` : ""}</span></div>`).join("");
+
+  const days = [...Array(14)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - 13 + i); return d; });
+  const counts = days.map((d) => all.filter((w) => { const t = ms(w.createdAt); return t && t >= +d && t < +d + 864e5; }).length);
+  const dm = Math.max(1, ...counts);
+  $("days").innerHTML = counts.map((n) => `<div style="height:${(n / dm) * 100}%">${n ? `<span>${n}</span>` : ""}</div>`).join("");
+  $("daysX").innerHTML = days.map((d) => `<span>${d.getDate()}</span>`).join("");
+
+  const ap = all.filter((w) => w.status !== "REJECTED");
+  split($("sLang"), ap.filter((w) => w.language === "ml").length, ap.filter((w) => w.language !== "ml").length, "മലയാളം", "English", "#1f7a52", "#e3b75a");
+  split($("sAnon"), ap.filter((w) => w.isAnonymous).length, ap.filter((w) => !w.isAnonymous).length, "Anonymous", "Named", "#1f7a52", "#e3b75a");
+}
+
+function render() {
+  $("bPending").textContent = all.filter((w) => w.status === "PENDING").length;
+  if (tab === "stats") renderStats(); else if (tab !== "settings") renderList();
+}
+
+// ===================================================================== events
+$("qTower").innerHTML += TOWERS.map((t) => `<option>${t}</option>`).join("");
+$("tabs").onclick = (e) => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  tab = b.dataset.tab;
+  document.querySelectorAll("[data-tab]").forEach((x) => x.setAttribute("aria-selected", x === b));
+  $("pList").hidden = tab === "stats" || tab === "settings"; $("pStats").hidden = tab !== "stats"; $("pSettings").hidden = tab !== "settings";
+  render();
+};
+$("q").oninput = $("qTower").onchange = renderList;
+$("list").onclick = async (e) => {
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  const id = b.closest("[data-id]").dataset.id, a = b.dataset.a;
+  let remarks = "";
+  if (a === "remove") { remarks = prompt("Remove this wish from the tree? Optional reason for the log:"); if (remarks === null) return; }
+  if (a === "reject") remarks = "";
+  b.closest(".acts").querySelectorAll("button").forEach((x) => (x.disabled = true));
+  try { await api.moderate(id, a, remarks); toast({ approve: "Approved — it's on the tree 🎄", reject: "Rejected", remove: "Removed from the tree" }[a]); }
+  catch (err) { toast(err.message || "Failed — try again"); b.closest(".acts").querySelectorAll("button").forEach((x) => (x.disabled = false)); }
+};
+$("csv").onclick = () => {
+  const cols = ["id", "status", "tower", "displayName", "familyName", "isAnonymous", "language", "message", "createdAt", "approvedAt", "flags"];
+  const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = all.map((w) => cols.map((k) => cell(k.endsWith("At") ? (ms(w[k]) ? new Date(ms(w[k])).toISOString() : "") : Array.isArray(w[k]) ? w[k].join(" ") : w[k])).join(","));
+  const blob = new Blob(["﻿" + [cols.join(","), ...rows].join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "wish-tree-2026.csv"; a.click();
+};
+$("sSave").onclick = async () => {
+  const words = $("sWords").value.split(/[\n,]/).map((w) => w.trim()).filter(Boolean);
+  try {
+    await api.saveConfig({ open: $("sOpen").checked, autoApprove: $("sAuto").checked, reportThreshold: Math.max(1, Math.min(20, +$("sReports").value || 3)) });
+    await api.saveSettings({ blockedWords: words });
+    toast("Settings saved");
+  } catch (e) { toast("Couldn't save: " + (e.code || e.message)); }
+};
+$("login").onsubmit = async (e) => {
+  e.preventDefault(); $("lErr").hidden = true;
+  try { await api.signIn($("lEmail").value.trim(), $("lPass").value); }
+  catch { $("lErr").textContent = "Wrong email or password."; $("lErr").hidden = false; }
+};
+$("logout").onclick = () => api.signOut();
+
+let started = false;
+api.onAuth((user, msg) => {
+  $("login").hidden = !!user; $("app").hidden = !user;
+  if (msg) { $("lErr").textContent = msg; $("lErr").hidden = false; }
+  if (!user || started) return;
+  started = true;
+  $("whoEmail").textContent = user.email;
+  api.onConfig((c) => { cfg = c; $("sOpen").checked = !!c.open; $("sAuto").checked = !!c.autoApprove; $("sReports").value = c.reportThreshold ?? 3; });
+  api.onSettings((s) => { $("sWords").value = (s.blockedWords || []).join("\n"); });
+  api.onAll((list) => { all = list; render(); });
+});
+</script>
+</body>
+</html>
