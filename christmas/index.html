@@ -7,7 +7,12 @@
 <meta name="description" content="Hang your Christmas wish on the PT Malayali Samajam tree — in Malayalam or English.">
 <meta property="og:title" content="PT Wish Tree · Nammude Christmas 2026">
 <meta property="og:description" content="Hang your Christmas wish on our Samajam tree — in Malayalam or English. 🎄">
-<meta property="og:image" content="https://ptmalayalisamajam.github.io/sadya/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ptmalayalisamajam.github.io/christmas/">
+<meta property="og:image" content="https://ptmalayalisamajam.github.io/christmas/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0a2219">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -210,7 +215,7 @@ textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope
 
 <div class="wrap">
   <header>
-    <img src="/sadya/logo.png" alt="" onerror="this.style.display='none'">
+    <svg width="38" height="38" viewBox="-14 -14 28 28" aria-hidden="true" style="flex:none"><circle r="14" fill="#123a2b"/><use href="#o-star" x="-10" y="-10" width="20" height="20"/></svg>
     <div class="org">PT Malayali Samajam<small>Prestige Tranquility · Bengaluru</small></div>
     <button class="share-top" id="shareTop" aria-label="Share on WhatsApp">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 2.5 1 3 .8 3.6.7.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3ZM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg>Share</button>
@@ -258,8 +263,8 @@ textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope
       <summary>Community guidelines &amp; privacy</summary>
       <ul>
         <li>Keep wishes warm and kind — this tree is for everyone in Tranquility, including children.</li>
-        <li>No advertising, links, phone numbers, politics or anything hurtful. Such wishes are not approved.</li>
-        <li>The Samajam committee reviews wishes before they go on the tree and may remove any wish.</li>
+        <li>No advertising, links, phone numbers, politics or anything hurtful.</li>
+        <li>Wishes appear on the tree straight away. The Samajam committee may remove any wish that breaks these guidelines.</li>
         <li><b>Anonymous</b> hides your name from everyone visiting the site. Committee members can still see the name you typed.</li>
         <li>We don't ask for your phone or email. We don't show IP addresses or any technical details publicly.</li>
         <li>To have your wish taken down, tap <i>Report</i> on it or tell any committee member.</li>
@@ -310,7 +315,7 @@ textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope
       <label class="f" id="famWrap">Family / house name <small>optional</small>
         <input class="in" id="iFam" maxlength="60" placeholder="e.g. Kurian family">
       </label>
-      <label class="consent"><input type="checkbox" id="iConsent"> <span>I agree my wish can be shown publicly on the Samajam Wish Tree after committee review, as per the <a href="#guidelines" id="gLink">guidelines</a>.</span></label>
+      <label class="consent"><input type="checkbox" id="iConsent"> <span>I agree my wish will be shown publicly on the Samajam Wish Tree, as per the <a href="#guidelines" id="gLink">guidelines</a>.</span></label>
       <p class="err" id="fErr" role="alert" hidden></p>
       <button class="btn btn-gold" id="fSubmit" type="submit">Hang it on the tree 🎄</button>
     </form>
@@ -319,7 +324,15 @@ textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope
 
 <div class="toast" id="toast" role="status"></div>
 
-<script type="module">
+<script src="demo.js"></script>
+<script>
+(async () => {
+const FIREBASE = {
+  config: { apiKey: "AIzaSyD5rDHGGQy_OQ8sZ_nJv0Wp5CkO0AZ290U", authDomain: "ptmalayalisamajam.firebaseapp.com", projectId: "ptmalayalisamajam",
+    storageBucket: "ptmalayalisamajam.firebasestorage.app", messagingSenderId: "713492734826", appId: "1:713492734826:web:8928a3a3641e6eddd23b13" },
+  region: "asia-south1",
+  appCheckSiteKey: "", // reCAPTCHA v3 site key once App Check is set up (same as sadya/firebase-config.js)
+};
 // ===================================================================== setup
 const TOWERS = Array.from({ length: 17 }, (_, i) => `T${i + 1}`);
 const ORN = [["bauble", "Bauble"], ["star", "Star"], ["snowflake", "Snow"], ["bell", "Bell"], ["gift", "Gift"]];
@@ -343,12 +356,12 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add
 
 // ===================================================================== data layer
 async function liveApi() {
-  const [{ initializeApp }, fs, fns, ac, cfgMod] = await Promise.all([
+  const cfgMod = { firebaseConfig: FIREBASE.config, FUNCTIONS_REGION: FIREBASE.region, APP_CHECK_SITE_KEY: FIREBASE.appCheckSiteKey };
+  const [{ initializeApp }, fs, fns, ac] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js"),
-    import("/sadya/firebase-config.js"),
   ]);
   const app = initializeApp(cfgMod.firebaseConfig);
   if (cfgMod.APP_CHECK_SITE_KEY) ac.initializeAppCheck(app, { provider: new ac.ReCaptchaV3Provider(cfgMod.APP_CHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
@@ -374,8 +387,6 @@ async function liveApi() {
     async report(id) { return (await call("reportWish")({ id, deviceId })).data; },
   };
 }
-const api = DEMO ? (await import("./demo.js")).demo : await liveApi();
-if (DEMO) { $("demoBar").hidden = false; $("demoReset").onclick = () => { api.reset(); localStorage.removeItem("wt-mine"); location.reload(); }; }
 
 // ===================================================================== tree geometry
 const CX = 200;
@@ -579,7 +590,7 @@ $("form").onsubmit = async (e) => {
     treeIdx = Math.floor(slot / PER_TREE);
     renderTree();
     $("tree").scrollIntoView({ behavior: "smooth", block: "center" });
-    toast(r.status === "APPROVED" ? "Your wish is on the tree! ✨ Look for the glowing ring." : "Thank you! 🎄 Your wish will appear for everyone once the committee approves it.");
+    toast("Your wish is on the tree! ✨ Look for the glowing ring.");
   } catch (err) {
     formError(!err?.message || /^(internal|INTERNAL)$/.test(err.message) ? "Something went wrong. Please check your connection and try again." : err.message);
   } finally { btn.disabled = false; btn.textContent = "Hang it on the tree 🎄"; }
@@ -607,6 +618,17 @@ $("more").onclick = () => { shown += PAGE; renderCards(); };
   s.innerHTML = h;
 })();
 
+// ---- connect (after the tree is drawn, so a connection problem never leaves a blank page)
+let api = null;
+try { api = DEMO ? window.wtDemo : await liveApi(); if (!api) throw new Error("demo.js missing"); }
+catch (e) {
+  console.error("Wish Tree: could not connect", e);
+  $("hint").textContent = "Couldn't connect to the Wish Tree. Please check your internet and reload the page.";
+  $("openForm").disabled = true;
+  return;
+}
+if (DEMO) { $("demoBar").hidden = false; $("demoReset").onclick = () => { api.reset(); localStorage.removeItem("wt-mine"); location.reload(); }; }
+
 let firstLoad = true;
 api.onConfig((c) => {
   cfg = c;
@@ -626,6 +648,7 @@ api.onWishes((list) => {
     if (m) { const w = wishes.find((x) => x.id === m[1]); if (w) { treeIdx = Math.floor(w.slot / PER_TREE); renderTree(); openWish(w.id); } }
   }
 });
+})();
 </script>
 </body>
 </html>
