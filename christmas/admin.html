@@ -98,9 +98,8 @@ label.f small{font-weight:500;color:var(--ink3)}
 <div class="wrap" id="app" hidden>
   <div class="top"><h1>🎄 Wish Tree</h1><div class="who"><span id="whoEmail"></span><br><button id="logout">Sign out</button></div></div>
   <div class="tabs" role="tablist" id="tabs">
-    <button role="tab" data-tab="PENDING" aria-selected="true">To review <span class="badge" id="bPending">0</span></button>
-    <button role="tab" data-tab="APPROVED" aria-selected="false">On the tree</button>
-    <button role="tab" data-tab="REJECTED" aria-selected="false">Rejected / removed</button>
+    <button role="tab" data-tab="APPROVED" aria-selected="true">On the tree</button>
+    <button role="tab" data-tab="REJECTED" aria-selected="false">Removed <span class="badge" id="bRemoved" hidden>0</span></button>
     <button role="tab" data-tab="stats" aria-selected="false">Participation</button>
     <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
   </div>
@@ -115,8 +114,10 @@ label.f small{font-weight:500;color:var(--ink3)}
 
   <div id="pStats" hidden>
     <div class="tiles" id="tiles"></div>
+    <h2>Most loved wishes</h2>
+    <div class="list" id="loved"></div>
     <h2>Tower participation</h2>
-    <div class="legend"><span><i style="background:var(--green)"></i>On the tree</span><span><i style="background:var(--gold)"></i>Waiting for review</span></div>
+    
     <div class="bars" id="tBars"></div>
     <h2>Wishes per day (last 14 days)</h2>
     <div class="cols" id="days"></div><div class="colx" id="daysX"></div>
@@ -129,10 +130,9 @@ label.f small{font-weight:500;color:var(--ink3)}
   <div id="pSettings" hidden>
     <div class="set">
       <label class="sw"><input type="checkbox" id="sOpen"><span><b>Accepting new wishes</b><small>Switch off after Christmas to freeze the tree as a keepsake.</small></span></label>
-      <label class="sw"><input type="checkbox" id="sAuto"><span><b>Auto-approve clean wishes</b><small>Wishes go straight on the tree unless they contain a link, a phone number, a blocked word or repeated characters — those wait here for review. Recommended for 24–25 Dec if no one can moderate.</small></span></label>
-      <label class="f">Hide a wish after this many reports
+      <label class="f">Take a wish off the tree after this many reports
         <input class="in" id="sReports" type="number" min="1" max="20" style="max-width:120px"></label>
-      <label class="f">Blocked words <small>One per line, English or Malayalam. Wishes containing these always wait for review. Only committee members can see this list.</small>
+      <label class="f">Blocked words <small>One per line, English or Malayalam. Wishes containing these are refused with a polite "please rephrase". Only committee members can see this list.</small>
         <textarea class="in" id="sWords" rows="6"></textarea></label>
       <button class="b b-gold" id="sSave">Save settings</button>
     </div>
@@ -140,7 +140,15 @@ label.f small{font-weight:500;color:var(--ink3)}
 </div>
 <div class="toast" id="toast"></div>
 
-<script type="module">
+<script src="demo.js"></script>
+<script>
+(async () => {
+const FIREBASE = {
+  config: { apiKey: "AIzaSyD5rDHGGQy_OQ8sZ_nJv0Wp5CkO0AZ290U", authDomain: "ptmalayalisamajam.firebaseapp.com", projectId: "ptmalayalisamajam",
+    storageBucket: "ptmalayalisamajam.firebasestorage.app", messagingSenderId: "713492734826", appId: "1:713492734826:web:8928a3a3641e6eddd23b13" },
+  region: "asia-south1",
+  appCheckSiteKey: "", // reCAPTCHA v3 site key once App Check is set up (same as sadya/firebase-config.js)
+};
 const TOWERS = Array.from({ length: 17 }, (_, i) => `T${i + 1}`);
 const DEMO = new URLSearchParams(location.search).has("demo");
 const $ = (id) => document.getElementById(id);
@@ -152,13 +160,13 @@ const FLAG = { "link": "Has a link", "phone-number": "Has a phone number", "bloc
 
 // ===================================================================== data layer
 async function liveApi() {
-  const [{ initializeApp }, A, F, Fn, AC, C] = await Promise.all([
+  const C = { firebaseConfig: FIREBASE.config, FUNCTIONS_REGION: FIREBASE.region, APP_CHECK_SITE_KEY: FIREBASE.appCheckSiteKey };
+  const [{ initializeApp }, A, F, Fn, AC] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js"),
     import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js"),
-    import("/sadya/firebase-config.js"),
   ]);
   const app = initializeApp(C.firebaseConfig);
   if (C.APP_CHECK_SITE_KEY) AC.initializeAppCheck(app, { provider: new AC.ReCaptchaV3Provider(C.APP_CHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
@@ -196,41 +204,45 @@ async function liveApi() {
 }
 let api;
 if (DEMO) {
-  const { demo } = await import("./demo.js");
-  api = { ...demo, onAuth: (cb) => cb({ email: "demo@ptms (preview)" }), signOut: () => location.reload() };
+  api = { ...window.wtDemo, onAuth: (cb) => cb({ email: "demo@ptms (preview)" }), signOut: () => location.reload() };
   $("demoBar").hidden = false;
-} else api = await liveApi();
+} else {
+  try { api = await liveApi(); }
+  catch (e) { console.error(e); document.body.insertAdjacentHTML("afterbegin", '<p class="demo">Could not connect to Firebase. Check your internet and reload.</p>'); return; }
+}
 
 // ===================================================================== state
-let all = [], cfg = {}, tab = "PENDING";
+let all = [], cfg = {}, tab = "APPROVED";
 
+const RXE = { heart: "❤️", tree: "🎄", pray: "🙏", laugh: "😂" };
+const rxSum = (w) => Object.values(w.reactions || {}).reduce((a, b) => a + (b || 0), 0);
+const RXT = (w) => { const t = Object.entries(w.reactions || {}).filter(([, n]) => n > 0).map(([k, n]) => `${RXE[k] || ""} ${n}`).join("  "); return t ? `<span class="chip">${t}</span>` : ""; };
 function card(w) {
   const flags = (w.flags || []).map((f) => `<span class="chip red">${esc(FLAG[f] || f)}</span>`).join("");
   const reps = (w.reporters || []).length && w.status === "APPROVED" ? `<span class="chip red">${w.reporters.length} report${w.reporters.length > 1 ? "s" : ""}</span>` : "";
   const name = w.displayName ? esc(w.displayName) : "<i>no name</i>";
   let acts = "";
-  if (w.status === "PENDING") acts = `<button class="b b-ok" data-a="approve">Approve ✓</button><button class="b b-no" data-a="reject">Reject</button>`;
   if (w.status === "APPROVED") acts = `<button class="b b-no" data-a="remove">Remove from tree</button>`;
-  if (w.status === "REJECTED" || w.status === "REMOVED") acts = `<button class="b b-gh" data-a="approve">Approve after all</button>`;
+  if (w.status !== "APPROVED") acts = `<button class="b b-gh" data-a="approve">Put back on the tree</button>`;
   return `<article class="w ${flags || reps ? "flagged" : ""}" data-id="${esc(w.id)}">
     <p class="msg" lang="${w.language === "ml" ? "ml" : "en"}">${esc(w.message)}</p>
     <div class="meta"><b>${name}</b>${w.familyName ? `<span>${esc(w.familyName)}</span>` : ""}<span class="chip">${esc(w.tower)}</span>
       ${w.isAnonymous ? '<span class="chip gold">Shown as Anonymous</span>' : ""}<span class="chip">${w.language === "ml" ? "മലയാളം" : "English"}</span>
       <span>${when(w.createdAt)}</span>${w.status !== "PENDING" && w.status !== "APPROVED" ? `<span class="chip">${w.status.toLowerCase()}</span>` : ""}
-      ${w.approvedBy === "auto" ? '<span class="chip">auto-approved</span>' : ""}${flags}${reps}</div>
+      ${RXT(w)}${flags}${reps}</div>
     <div class="acts">${acts}</div></article>`;
 }
 
 function renderList() {
   const q = $("q").value.trim().toLowerCase(), t = $("qTower").value;
-  const want = tab === "REJECTED" ? ["REJECTED", "REMOVED"] : [tab];
+  const want = tab === "REJECTED" ? ["REJECTED", "REMOVED", "PENDING"] : [tab];
   let list = all.filter((w) => want.includes(w.status) && (!t || w.tower === t)
     && (!q || `${w.displayName} ${w.familyName} ${w.tower} ${w.message}`.toLowerCase().includes(q)));
   // queue: oldest first, flagged on top; others: newest first
   list.sort(tab === "PENDING" ? (a, b) => (b.flags?.length ? 1 : 0) - (a.flags?.length ? 1 : 0) || (ms(a.createdAt) ?? 9e15) - (ms(b.createdAt) ?? 9e15)
     : (a, b) => (ms(b.createdAt) ?? 9e15) - (ms(a.createdAt) ?? 9e15));
   $("list").innerHTML = list.length ? list.map(card).join("")
-    : `<div class="empty">${tab === "PENDING" ? "All caught up — nothing to review 🎉" : "Nothing here."}</div>`;
+    : `<div class="empty">${tab === "APPROVED" ? "No wishes on the tree yet." : "Nothing removed 🎉"}</div>`;
 }
 
 function split(el, a, b, la, lb, ca, cb) {
@@ -240,10 +252,14 @@ function split(el, a, b, la, lb, ca, cb) {
 
 function renderStats() {
   const c = (s) => all.filter((w) => w.status === s).length;
-  const tiles = [["Total received", all.length], ["On the tree", c("APPROVED")], ["To review", c("PENDING")], ["Rejected", c("REJECTED")], ["Removed", c("REMOVED")],
+  const tiles = [["Total received", all.length], ["On the tree", c("APPROVED")], ["Removed", all.length - c("APPROVED")], ["Reactions", all.reduce((n, w) => n + rxSum(w), 0)],
     ["Towers taking part", new Set(all.filter((w) => w.status === "APPROVED").map((w) => w.tower)).size + " / 17"]];
   $("tiles").innerHTML = tiles.map(([l, n]) => `<div class="tile"><b>${n}</b><span>${l}</span></div>`).join("");
 
+  const top = all.filter((w) => w.status === "APPROVED" && rxSum(w) > 0).sort((a, b) => rxSum(b) - rxSum(a)).slice(0, 5);
+  $("loved").innerHTML = top.length ? top.map((w) => `<article class="w"><p class="msg" lang="${w.language === "ml" ? "ml" : "en"}">${esc(w.message)}</p>
+    <div class="meta"><b>${w.isAnonymous ? "Anonymous" : esc(w.displayName)}</b><span class="chip">${esc(w.tower)}</span>${RXT(w)}</div></article>`).join("")
+    : '<div class="empty">No reactions yet.</div>';
   const per = TOWERS.map((t) => ({ t, a: all.filter((w) => w.tower === t && w.status === "APPROVED").length, p: all.filter((w) => w.tower === t && w.status === "PENDING").length }));
   const max = Math.max(1, ...per.map((x) => x.a + x.p));
   $("tBars").innerHTML = per.sort((x, y) => y.a + y.p - (x.a + x.p)).map((x) =>
@@ -261,7 +277,7 @@ function renderStats() {
 }
 
 function render() {
-  $("bPending").textContent = all.filter((w) => w.status === "PENDING").length;
+  const nr = all.filter((w) => w.status !== "APPROVED").length; $("bRemoved").textContent = nr; $("bRemoved").hidden = !nr;
   if (tab === "stats") renderStats(); else if (tab !== "settings") renderList();
 }
 
@@ -282,7 +298,7 @@ $("list").onclick = async (e) => {
   if (a === "remove") { remarks = prompt("Remove this wish from the tree? Optional reason for the log:"); if (remarks === null) return; }
   if (a === "reject") remarks = "";
   b.closest(".acts").querySelectorAll("button").forEach((x) => (x.disabled = true));
-  try { await api.moderate(id, a, remarks); toast({ approve: "Approved — it's on the tree 🎄", reject: "Rejected", remove: "Removed from the tree" }[a]); }
+  try { await api.moderate(id, a, remarks); toast({ approve: "Back on the tree 🎄", remove: "Removed from the tree" }[a]); }
   catch (err) { toast(err.message || "Failed — try again"); b.closest(".acts").querySelectorAll("button").forEach((x) => (x.disabled = false)); }
 };
 $("csv").onclick = () => {
@@ -295,7 +311,7 @@ $("csv").onclick = () => {
 $("sSave").onclick = async () => {
   const words = $("sWords").value.split(/[\n,]/).map((w) => w.trim()).filter(Boolean);
   try {
-    await api.saveConfig({ open: $("sOpen").checked, autoApprove: $("sAuto").checked, reportThreshold: Math.max(1, Math.min(20, +$("sReports").value || 3)) });
+    await api.saveConfig({ open: $("sOpen").checked, reportThreshold: Math.max(1, Math.min(20, +$("sReports").value || 3)) });
     await api.saveSettings({ blockedWords: words });
     toast("Settings saved");
   } catch (e) { toast("Couldn't save: " + (e.code || e.message)); }
@@ -314,10 +330,11 @@ api.onAuth((user, msg) => {
   if (!user || started) return;
   started = true;
   $("whoEmail").textContent = user.email;
-  api.onConfig((c) => { cfg = c; $("sOpen").checked = !!c.open; $("sAuto").checked = !!c.autoApprove; $("sReports").value = c.reportThreshold ?? 3; });
+  api.onConfig((c) => { cfg = c; $("sOpen").checked = !!c.open; $("sReports").value = c.reportThreshold ?? 3; });
   api.onSettings((s) => { $("sWords").value = (s.blockedWords || []).join("\n"); });
   api.onAll((list) => { all = list; render(); });
 });
+})();
 </script>
 </body>
 </html>

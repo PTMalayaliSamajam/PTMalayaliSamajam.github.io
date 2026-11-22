@@ -1,7 +1,8 @@
 // Demo backend for previewing the Wish Tree without Firebase: open index.html?demo or admin.html?demo.
-// Data lives in this browser's localStorage only. Not loaded at all in normal (live) mode.
+// Data lives in this browser's localStorage only. Plain script (works even when the file is opened directly).
+(() => {
 
-const KEY = "wt-demo-v1";
+const KEY = "wt-demo-v3";
 const ORN = ["bauble", "star", "snowflake", "bell", "gift"];
 const SAMPLES = [
   ["ml", "എല്ലാവർക്കും സ്നേഹം നിറഞ്ഞ ക്രിസ്മസ് ആശംസകൾ! 🎄"],
@@ -27,17 +28,17 @@ function seed() {
     const [lang, msg] = SAMPLES[i % SAMPLES.length];
     const [name, fam] = NAMES[(i * 5) % NAMES.length];
     const anon = !name;
-    const status = i < 36 ? "APPROVED" : i < 40 ? "PENDING" : "REJECTED";
+    const status = i < 40 ? "APPROVED" : "REMOVED";
     const at = now - (42 - i) * 3.1 * 3600e3;
     wishes.push({
       id: "demo" + String(i).padStart(4, "0"), event: "nammude-christmas-2026",
       tower: "T" + (1 + ((i * 7 + (i % 3) * 4) % 17)), displayName: name, familyName: fam, isAnonymous: anon,
-      message: msg, language: lang, ornament: ORN[(i * 3) % 5], status, flags: status === "PENDING" && i === 38 ? ["link"] : [],
-      slot: status === "APPROVED" ? i : null, createdAt: at, approvedAt: status === "APPROVED" ? at + 1800e3 : null, reporters: [],
+      message: msg, language: lang, ornament: ORN[(i * 3) % 5], status, flags: [],
+      slot: i, reactions: { heart: (i * 7) % 9, tree: (i * 3) % 5, pray: i % 4, laugh: (i * 5) % 3 }, createdAt: at, approvedAt: status === "APPROVED" ? at + 1800e3 : null, reporters: [],
     });
   }
   return { config: { event: "nammude-christmas-2026", open: true, autoApprove: true, reportThreshold: 3 },
-    settings: { blockedWords: [] }, wishes, nextSlot: 36, logs: [] };
+    settings: { blockedWords: [] }, wishes, nextSlot: 42, logs: [] };
 }
 
 function load() {
@@ -54,9 +55,9 @@ const seg = new Intl.Segmenter("ml", { granularity: "grapheme" });
 const glen = (t) => [...seg.segment(t || "")].length;
 const err = (m) => Object.assign(new Error(m), { message: m });
 const pub = (w) => ({ id: w.id, tower: w.tower, name: w.isAnonymous ? "" : [w.displayName, w.familyName].filter(Boolean).join(" · "),
-  isAnonymous: w.isAnonymous, message: w.message, language: w.language, ornament: w.ornament, slot: w.slot, at: w.approvedAt });
+  isAnonymous: w.isAnonymous, message: w.message, language: w.language, ornament: w.ornament, slot: w.slot, at: w.approvedAt, reactions: { ...(w.reactions || {}) } });
 
-export const demo = {
+window.wtDemo = {
   isDemo: true,
   reset() { localStorage.removeItem(KEY); emit(); },
   // ---- public side
@@ -71,8 +72,8 @@ export const demo = {
     if (glen(msg) > 500) throw err("Your wish can be at most 500 letters.");
     if (s.wishes.some((w) => w.message.toLowerCase() === msg.toLowerCase())) throw err("This wish is already on the tree.");
     const lang = /[ഀ-ൿ]/.test(msg) ? "ml" : "en";
-    const flags = /(https?:\/\/|www\.)/i.test(msg) ? ["link"] : [];
-    const ok = s.config.autoApprove && !flags.length;
+    if (/(https?:\/\/|www\.)/i.test(msg)) throw err("Please remove the website link — links aren't allowed on the tree.");
+    const flags = [], ok = true;
     const w = { id: "demo" + Date.now(), event: s.config.event, tower: d.tower, displayName: d.isAnonymous ? "" : d.displayName,
       familyName: d.familyName || "", isAnonymous: !!d.isAnonymous, message: msg, language: lang, ornament: d.ornament || "bauble",
       status: ok ? "APPROVED" : "PENDING", flags, slot: ok ? s.nextSlot++ : null, createdAt: Date.now(), approvedAt: ok ? Date.now() : null, reporters: [] };
@@ -81,8 +82,16 @@ export const demo = {
   },
   async report(id) {
     const s = load(); const w = s.wishes.find((x) => x.id === id);
-    if (w && w.status === "APPROVED") { w.reporters.push(Date.now()); if (w.reporters.length >= 3) { w.status = "PENDING"; w.flags.push("reported"); } save(s); emit(); }
+    if (w && w.status === "APPROVED") { w.reporters.push(Date.now()); if (w.reporters.length >= 3) { w.status = "REMOVED"; w.flags.push("reported"); } save(s); emit(); }
     return { ok: true };
+  },
+  async react(id, emoji) {
+    const s = load(); const w = s.wishes.find((x) => x.id === id);
+    if (!w || w.status !== "APPROVED") throw err("This wish is no longer on the tree.");
+    s.mine = s.mine || {}; const have = s.mine[id] || []; const on = !have.includes(emoji);
+    s.mine[id] = on ? [...have, emoji] : have.filter((e) => e !== emoji);
+    w.reactions = w.reactions || {}; w.reactions[emoji] = Math.max(0, (w.reactions[emoji] || 0) + (on ? 1 : -1));
+    save(s); emit(); return { on, emoji, mine: s.mine[id] };
   },
   // ---- admin side
   async signIn() { return { email: "demo@ptms" }; },
@@ -98,3 +107,4 @@ export const demo = {
     s.logs.push({ id, action, at: Date.now() }); save(s); emit(); return { ok: true };
   },
 };
+})();

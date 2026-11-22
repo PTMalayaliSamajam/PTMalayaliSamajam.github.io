@@ -147,6 +147,17 @@ dialog::backdrop{background:rgba(3,12,8,.72);backdrop-filter:blur(3px)}
 .wish-by b{color:var(--gold2)}
 .wish-actions{display:flex;gap:10px}
 .wish-actions .btn{flex:1;font-size:15px;min-height:46px;padding:10px}
+.reacts{display:flex;gap:8px;justify-content:center;margin:0 0 16px;flex-wrap:wrap}
+.rx{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border-radius:99px;border:1px solid var(--line);
+  background:rgba(255,255,255,.05);color:var(--ink2);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;transition:transform .15s,background .15s}
+.rx .e{font-size:20px;line-height:1}
+.rx[aria-pressed="true"]{background:rgba(227,183,90,.18);border-color:var(--gold);color:var(--gold2)}
+.rx:active{transform:scale(.92)}
+.rx.bump .e{animation:bump .4s ease}
+@keyframes bump{40%{transform:scale(1.45)}}
+.reacts.sm{justify-content:flex-start;gap:6px;margin:0 0 10px}
+.reacts.sm .rx{min-height:34px;padding:3px 10px;font-size:13px}
+.reacts.sm .rx .e{font-size:16px}
 .report{display:block;margin:14px auto 0;background:none;border:0;color:var(--ink3);font-size:13px;text-decoration:underline}
 .pending-note{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--ink2);text-align:center;margin:0 0 14px}
 
@@ -249,10 +260,10 @@ textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope
 
   <section id="wishes" aria-labelledby="wh">
     <h2 id="wh">All wishes</h2>
-    <p class="sub">Every ornament on the tree, newest first</p>
+    <p class="sub">Every ornament on the tree. Tap an emoji to react ❤️</p>
     <div class="filters">
       <select id="fTower" aria-label="Filter by tower"><option value="">All towers</option></select>
-      <select id="fSort" aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option></select>
+      <select id="fSort" aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="loved">Most loved</option></select>
     </div>
     <div class="cards" id="cards"></div>
     <button class="btn btn-ghost more" id="more" hidden>Show more wishes</button>
@@ -283,6 +294,7 @@ textarea.in{min-height:130px;resize:vertical;line-height:1.6;font-family:Manrope
     <p class="pending-note" id="wPending" hidden>Waiting for the committee to approve — only you can see this ornament for now.</p>
     <p class="wish-msg" id="wMsg"></p>
     <p class="wish-by" id="wBy"></p>
+    <div class="reacts" id="wReacts" role="group" aria-label="React to this wish"></div>
     <div class="wish-actions">
       <button class="btn btn-wa" id="wShare">Share on WhatsApp</button>
     </div>
@@ -385,6 +397,7 @@ async function liveApi() {
     onWishes(cb) { wishCb = cb; },
     async submit(d) { return (await call("submitWish")({ ...d, deviceId })).data; },
     async report(id) { return (await call("reportWish")({ id, deviceId })).data; },
+    async react(id, emoji) { return (await call("reactWish")({ id, emoji, deviceId })).data; },
   };
 }
 
@@ -443,6 +456,14 @@ function ornUse(w, size = 24) {
   const f = w.ornament === "bauble" || w.ornament === "gift" ? ` style="--f:${fillFor(w)}"` : "";
   return `<use href="#o-${esc(w.ornament || "bauble")}" x="${-size / 2}" y="${-size / 2}" width="${size}" height="${size}"${f}/>`;
 }
+const RX = [["heart", "❤️"], ["tree", "🎄"], ["pray", "🙏"], ["laugh", "😂"]];
+let myReacts = store.get("wt-reacts", {}); // {wishId: ["heart", ...]} — this phone only
+const rxTotal = (w) => RX.reduce((n, [k]) => n + (w.reactions?.[k] || 0), 0);
+function reactsHtml(w) {
+  const mineR = myReacts[w.id] || [];
+  return RX.map(([k, e]) => { const n = w.reactions?.[k] || 0, on = mineR.includes(k);
+    return `<button type="button" class="rx" data-rx="${k}" data-id="${esc(w.id)}" aria-pressed="${on}" aria-label="${k}${n ? ", " + n : ""}"><span class="e">${e}</span>${n ? n : ""}</button>`; }).join("");
+}
 const byLine = (w) => `${w.name ? esc(w.name) : "Anonymous"} · ${esc(w.tower)}`;
 
 function renderTree() {
@@ -498,10 +519,12 @@ function renderTowers() {
 
 function renderCards() {
   const ft = $("fTower").value, asc = $("fSort").value === "old";
-  const list = wishes.filter((w) => !ft || w.tower === ft).sort((a, b) => (asc ? a.at - b.at : b.at - a.at));
+  const loved = $("fSort").value === "loved";
+  const list = wishes.filter((w) => !ft || w.tower === ft).sort((a, b) => (loved ? rxTotal(b) - rxTotal(a) || b.at - a.at : asc ? a.at - b.at : b.at - a.at));
   $("cards").innerHTML = list.length ? list.slice(0, shown).map((w) => `
     <article class="card">
       <p lang="${w.language === "ml" ? "ml" : "en"}">${esc(w.message)}</p>
+      <div class="reacts sm" role="group" aria-label="React">${reactsHtml(w)}</div>
       <footer><span class="who">${w.name ? esc(w.name) : "Anonymous"}</span><span class="tag">${esc(w.tower)}</span><span class="tag">${w.language === "ml" ? "മലയാളം" : "English"}</span>
         <svg class="ic" viewBox="-14 -14 28 28" aria-hidden="true">${ornUse(w, 26)}</svg></footer>
     </article>`).join("") : `<div class="empty">${ft ? `No wishes from ${ft} yet — be the first!` : "No wishes yet. Hang the first one!"}</div>`;
@@ -520,6 +543,7 @@ function openWish(id) {
   $("wOrn").innerHTML = `<svg viewBox="-14 -14 28 28">${ornUse(w, 26)}</svg>`;
   const m = $("wMsg"); m.textContent = w.message; m.lang = w.language === "ml" || isMl(w.message) ? "ml" : "en";
   $("wBy").innerHTML = `— <b>${w.name ? esc(w.name) : "Anonymous"}</b>, ${esc(w.tower)}`;
+  $("wReacts").innerHTML = pending ? "" : reactsHtml(w); $("wReacts").hidden = pending;
   $("wPending").hidden = !pending; $("wShare").hidden = pending; $("wReport").hidden = pending || mine.some((x) => x.id === id);
   $("dlgWish").showModal();
   history.replaceState(null, "", pending ? location.pathname + location.search : `#w=${id}`);
@@ -535,6 +559,22 @@ $("wReport").onclick = async () => {
   try { await api.report(current.id); toast("Thanks — the committee will take a look."); } catch { toast("Couldn't send the report. Please try again."); }
   $("dlgWish").close();
 };
+let rxBusy = false;
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest(".rx"); if (!b || rxBusy || !api) return;
+  const id = b.dataset.id, k = b.dataset.rx, w = wishes.find((x) => x.id === id); if (!w) return;
+  const before = { r: { ...(w.reactions || {}) }, m: [...(myReacts[id] || [])] };
+  const on = !before.m.includes(k);
+  w.reactions = { ...before.r, [k]: Math.max(0, (before.r[k] || 0) + (on ? 1 : -1)) };
+  myReacts[id] = on ? [...before.m, k] : before.m.filter((x) => x !== k);
+  const paint = () => { renderCards(); if ($("dlgWish").open && current?.id === id) $("wReacts").innerHTML = reactsHtml(w); };
+  paint();
+  document.querySelectorAll(`.rx[data-id="${id}"][data-rx="${k}"]`).forEach((x) => on && x.classList.add("bump"));
+  rxBusy = true;
+  try { const r = await api.react(id, k); myReacts[id] = r.mine; store.set("wt-reacts", myReacts); }
+  catch (err) { w.reactions = before.r; myReacts[id] = before.m; paint(); toast(err?.message && !/^internal$/i.test(err.message) ? err.message : "Couldn't save your reaction. Please try again."); }
+  finally { rxBusy = false; }
+});
 $("shareTree").onclick = $("shareTop").onclick = () => waOpen(treeText());
 
 // ===================================================================== form
@@ -642,6 +682,7 @@ api.onWishes((list) => {
   if (changed) { store.set("wt-mine", mine); if (!firstLoad) toast("Your wish was approved and is now on the tree for everyone! 🎉"); }
   if (firstLoad) seenIds = new Set(list.map((w) => w.id)); // no pop animation on first paint
   renderAll();
+  if ($("dlgWish").open && current) { const fresh = wishes.find((x) => x.id === current.id); if (fresh) { current = fresh; $("wReacts").innerHTML = reactsHtml(fresh); } }
   if (firstLoad) {
     firstLoad = false;
     const m = location.hash.match(/^#w=([A-Za-z0-9]+)/);
