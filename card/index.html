@@ -73,8 +73,8 @@
 
   <!-- Not found -->
   <section id="stepNone" class="panel hidden">
-    <h2>No card found</h2>
-    <p class="sub">This number isn't linked to a membership. If you've paid, please contact the committee at <b>tranquilitymalayalisamajam@gmail.com</b> with your name and flat number.</p>
+    <h2 id="noneTitle">No card found</h2>
+    <p class="sub" id="noneText">This number isn't linked to a membership. If you've paid, please contact the committee at <b>tranquilitymalayalisamajam@gmail.com</b> with your name and flat number.</p>
     <button id="tryAgainBtn" class="ghost">Try another number</button>
   </section>
 
@@ -166,7 +166,7 @@ auth.onAuthStateChanged(async user => {
     const snap = await db.collection(MEMBERS_COLLECTION)
       .where("phone", "==", user.phoneNumber).get();
     const members = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => m.active !== false);
-    if (!members.length) { show("stepNone"); return; }
+    if (!members.length) { $("noneTitle").textContent = "No card found"; $("noneText").innerHTML = "This number isn't linked to a membership. If you've paid, please contact the committee at <b>tranquilitymalayalisamajam@gmail.com</b> with your name and flat number."; show("stepNone"); return; }
     $("cards").innerHTML = "";
     const tpl = await loadImage("card-template.png");
     try { await document.fonts.load("900 52px Montserrat"); await document.fonts.load("500 34px Montserrat"); } catch(_) {}
@@ -174,6 +174,8 @@ auth.onAuthStateChanged(async user => {
     show("stepCard");
   } catch (e) {
     console.error(e);
+    $("noneTitle").textContent = "Couldn't load your card";
+    $("noneText").textContent = "Something went wrong on our side (" + (e.code || "error") + "). Please try again in a few minutes, or contact tranquilitymalayalisamajam@gmail.com.";
     show("stepNone");
   }
 });
@@ -199,7 +201,8 @@ function renderCard(m, tpl) {
     if (qr.isDark(r, k)) x.fillRect(Math.round(qx + k * cell), Math.round(qy + r * cell), Math.ceil(cell), Math.ceil(cell));
 
   // Name: up to two lines, shrink to fit
-  const name = String(m.name).replace(/\s+/g, " ").toUpperCase();
+  let base = String(m.name).replace(/\s+/g, " ").trim();
+  const name = (/family/i.test(base) ? base : base + " and Family").toUpperCase();
   const wrap = (fs) => {
     x.font = `900 ${fs}px Montserrat, Arial, sans-serif`;
     const lines = []; let cur = "";
